@@ -2,308 +2,363 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
 <style>
-/* Layout: a synth "stage" (live chord + spectrum + transport) beside a quiet column of controls. Dark-first: it gets used at night. */
+/* Layout: one late-90s window on a teal desktop. A Winamp-style LCD (clock, marquee, spectrum) over the transport and mix,
+   the mode list on the right, and every extra behind the menu bar as a small child window. */
 :root {
-  --bg: #11161f;
-  --panel: #19202c;
-  --line: #2a3344;
-  --fg: #e5e8ee;
-  --muted: #8b95a8;
-  --accent: #f0a75a;
-  --accent-ink: #1c1208;
-  --accent-soft: rgba(240, 167, 90, 0.13);
-  --cool: #7db4c6;
-  --display: "Familjen Grotesk", "Segoe UI", system-ui, sans-serif;
-  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
-  color-scheme: dark;
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    --bg: #edf0f4; --panel: #ffffff; --line: #d3d9e3; --fg: #171d2a; --muted: #5a6477;
-    --accent: #b5621a; --accent-ink: #ffffff; --accent-soft: rgba(181, 98, 26, 0.11); --cool: #2d7083;
-    color-scheme: light;
-  }
-}
-:root[data-theme="light"] {
-  --bg: #edf0f4; --panel: #ffffff; --line: #d3d9e3; --fg: #171d2a; --muted: #5a6477;
-  --accent: #b5621a; --accent-ink: #ffffff; --accent-soft: rgba(181, 98, 26, 0.11); --cool: #2d7083;
+  --desk: #008080; --face: #c0c0c0; --hi: #ffffff; --lt: #dfdfdf; --sh: #808080; --dk: #0a0a0a;
+  --field: #ffffff; --ink: #000000; --dim: #808080; --title: #000080; --title-ink: #ffffff; --sel: #000080; --sel-ink: #ffffff;
+  --lcd: #000000; --lcd-on: #00e000; --lcd-mid: #00b000; --lcd-off: #005000; --lcd-bg: #001800;
+  --ui: Tahoma, "MS Sans Serif", "Segoe UI", Verdana, Geneva, sans-serif;
+  --lcd-font: "VT323", "Lucida Console", "Courier New", monospace;
   color-scheme: light;
 }
+/* Night: the same window, dimmed, so it doesn't glare in a dark room. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #013737; --face: #9a9a9a; --hi: #c4c4c4; --lt: #b0b0b0; --sh: #5c5c5c; --dk: #000000;
+    --field: #d2d2d2; --dim: #555555; --title: #00005a; --sel: #00005a;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #013737; --face: #9a9a9a; --hi: #c4c4c4; --lt: #b0b0b0; --sh: #5c5c5c; --dk: #000000;
+  --field: #d2d2d2; --dim: #555555; --title: #00005a; --sel: #00005a;
+}
 
-html, body { background: var(--bg); color: var(--fg); }
+html, body { background: var(--desk); color: var(--ink); }
 [hidden] { display: none !important; }
-body { font-family: var(--body); font-size: 15px; line-height: 1.5; }
-button, input { font: inherit; color: inherit; }
+body { font-family: var(--ui); font-size: 13px; line-height: 1.35; }
+button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+u { text-underline-offset: 1px; }
 
-.app {
-  max-width: 1180px; margin: 0 auto;
-  padding-block: 20px 48px;
+.desk {
+  padding-block: 28px 32px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: flex; flex-direction: column; gap: 22px;
 }
-.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; }
-.brand { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
-.mark { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--accent); box-shadow: inset 0 0 0 4px var(--bg), inset 0 0 0 9px var(--accent); }
-.tag { margin: 0; color: var(--muted); max-width: 52ch; }
+.foot { max-width: 1000px; margin: 10px auto 0; color: #ffffff; font-size: 12px; text-align: right; }
 
-.grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-@media (max-width: 880px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+/* Bevels */
+.raised { box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--lt), inset -2px -2px var(--sh), inset 2px 2px var(--hi); }
+.sunken { box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--sh), inset -2px -2px var(--lt), inset 2px 2px var(--dk); }
+.groove { box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--sh), inset -2px -2px var(--sh), inset 2px 2px var(--hi); }
 
-.stage {
-  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
-  padding: 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0;
+.win { position: relative; max-width: 1000px; margin: 0 auto; background: var(--face); padding: 3px; }
+.titlebar {
+  background: var(--title); color: var(--title-ink); font-weight: bold; padding: 3px 3px 3px 5px; min-height: 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
 }
-.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
-.chord { font-family: var(--display); font-weight: 600; font-size: clamp(48px, 8vw, 92px); line-height: 0.95; letter-spacing: -0.03em; margin: 4px 0 2px; }
-.meta { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.spec-wrap { position: relative; }
-canvas#spec { width: 100%; height: 210px; display: block; }
-.cap { font-size: 13px; color: var(--muted); margin: 0; }
-
-.transport { display: flex; align-items: center; gap: 16px 20px; flex-wrap: wrap; padding-top: 6px; border-top: 1px solid var(--line); margin-top: 4px; padding-block-start: 18px; }
-.play {
-  width: 64px; height: 64px; border-radius: 50%; border: 0; flex: none;
-  background: var(--accent); color: var(--accent-ink); display: grid; place-items: center;
-  transition: transform .15s ease;
+.titlebar .name { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.titlebar .name span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-btns { display: flex; gap: 2px; flex: none; }
+.tb-btns span, .x {
+  width: 16px; height: 14px; background: var(--face); color: var(--ink); font-size: 11px; line-height: 13px; text-align: center; font-weight: bold;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--sh);
 }
-.play:hover { transform: scale(1.04); }
-.play svg { width: 26px; height: 26px; fill: currentColor; }
-.timer { display: flex; flex-direction: column; min-width: 7ch; }
-.timer .t { font-family: var(--mono); font-size: 30px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.1; }
-.timer .sub { font-size: 13px; color: var(--muted); }
-.session { margin-left: auto; display: flex; flex-direction: column; gap: 6px; }
-.session .lbl { font-size: 12px; color: var(--muted); }
+.tb-btns span:last-child { margin-left: 2px; }
 
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; padding: 3px; gap: 3px; flex-wrap: wrap; }
-.seg button { border: 0; background: transparent; padding: 6px 11px; border-radius: 6px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--fg); box-shadow: inset 0 0 0 1px var(--accent); }
+.menubar { display: flex; flex-wrap: wrap; gap: 0 2px; padding: 2px 4px; }
+.menubar button { border: 0; background: none; padding: 3px 8px; }
+.menubar button:hover, .menubar button[aria-expanded="true"] { background: var(--sel); color: var(--sel-ink); }
 
-.controls { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
-.block { display: flex; flex-direction: column; gap: 12px; }
-.block + .block { border-top: 1px solid var(--line); padding-top: 20px; }
-h2 { margin: 0; font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-
-.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.mode {
-  text-align: left; padding: 12px 13px; border-radius: 10px; border: 1px solid var(--line);
-  background: transparent; display: flex; flex-direction: column; gap: 2px; min-width: 0;
+.body {
+  padding: 8px 8px 10px; display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 10px;
+  border-top: 1px solid var(--sh); box-shadow: inset 0 1px var(--hi);
 }
-.mode:hover { border-color: var(--muted); }
-.mode:last-child:nth-child(even) { grid-column: 1 / -1; }
-.modes-sub { grid-column: 1 / -1; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-top: 8px; }
-.mode[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
-.mode .n { font-family: var(--display); font-weight: 600; font-size: 17px; }
-.mode .u { font-size: 13px; color: var(--muted); }
-.mode .h { font-family: var(--mono); font-size: 11.5px; color: var(--accent); margin-top: 4px; }
+@media (max-width: 760px) { .body { grid-template-columns: minmax(0, 1fr); } }
+.col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 
-.slider { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; }
-.slider label { font-size: 14px; }
-.slider output { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.slider input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); margin: 2px 0 0; }
-.slider .hint { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
-.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.chip {
-  border: 1px solid var(--line); background: transparent; border-radius: 999px;
-  padding: 4px 12px; font-size: 13px;
+/* LCD */
+.lcd { background: var(--lcd); padding: 12px 14px 8px; display: flex; flex-direction: column; gap: 8px; font-family: var(--lcd-font); color: var(--lcd-on); }
+.lcd-top { display: flex; gap: 18px; align-items: flex-start; }
+.clock { display: flex; flex-direction: column; flex: none; }
+.clock .t { font-size: 72px; line-height: 0.8; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.clock .sub { font-size: 17px; color: var(--lcd-mid); text-transform: uppercase; margin-top: 4px; }
+.lcd-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.marquee { background: var(--lcd-bg); padding: 2px 8px; font-size: 24px; line-height: 1.15; white-space: pre; overflow: hidden; text-transform: uppercase; }
+.readout { display: flex; flex-wrap: wrap; gap: 2px 18px; font-size: 20px; color: var(--lcd-mid); font-variant-numeric: tabular-nums; text-transform: uppercase; }
+.readout .on { color: var(--lcd-on); }
+.readout .off { color: var(--lcd-off); }
+canvas#spec { width: 100%; height: 150px; display: block; }
+@media (max-width: 520px) {
+  .lcd-top { flex-direction: column; align-items: stretch; gap: 8px; }
+  .clock .t { font-size: 60px; }
+  canvas#spec { height: 120px; }
 }
-.chip[aria-pressed="false"] { color: var(--muted); }
-.chip[aria-pressed="true"] { border-color: var(--accent); color: var(--fg); }
 
-.files { display: flex; flex-direction: column; gap: 8px; }
-.filebtn {
-  align-self: flex-start; border: 1px dashed var(--muted); border-radius: 9px; padding: 8px 14px;
-  background: transparent; font-size: 14px;
+/* Controls */
+.btn {
+  border: 0; background: var(--face); min-height: 26px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--sh), inset 2px 2px var(--lt);
 }
-.filebtn:hover { border-color: var(--accent); }
-.tracks { font-size: 13px; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; min-width: 0; }
-.tracks .now { color: var(--fg); overflow-wrap: anywhere; }
-.note { font-size: 12.5px; color: var(--muted); margin: 0; }
+.btn:active:not(:disabled) { box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk), inset -2px -2px var(--lt), inset 2px 2px var(--sh); padding-top: 2px; padding-left: 14px; padding-right: 10px; }
+.btn:disabled { color: var(--dim); text-shadow: 1px 1px var(--hi); cursor: default; }
+.btn:disabled svg { fill: var(--dim); }
+.btn svg { width: 12px; height: 12px; fill: currentColor; flex: none; }
+.btn.main { font-weight: bold; min-width: 96px; box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--sh), inset 2px 2px var(--lt), 0 0 0 1px var(--dk); }
+:focus-visible { outline: 1px dotted var(--ink); outline-offset: -5px; }
+.lcd :focus-visible, .titlebar :focus-visible { outline-color: var(--title-ink); }
 
-.how { border-top: 1px solid var(--line); padding-top: 22px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 28px; }
-@media (max-width: 880px) { .how { grid-template-columns: minmax(0, 1fr); } }
-.how h3 { margin: 0 0 4px; font-family: var(--display); font-size: 16px; font-weight: 600; }
-.how p { margin: 0; font-size: 14px; color: var(--muted); max-width: 60ch; }
-.how a { color: var(--fg); text-decoration-color: var(--accent); text-underline-offset: 2px; }
-.fine { font-size: 12.5px; color: var(--muted); margin: 0; grid-column: 1 / -1; }
-
-.skip {
-  width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); flex: none;
-  background: transparent; color: var(--fg); display: grid; place-items: center; margin-left: -6px;
+.sel { position: relative; display: inline-block; min-width: 0; }
+.sel select {
+  appearance: none; -webkit-appearance: none; box-sizing: border-box; width: 100%; height: 26px; border: 0; border-radius: 0;
+  background: var(--field); color: var(--ink); padding: 0 24px 0 5px; cursor: pointer;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--sh), inset -2px -2px var(--lt), inset 2px 2px var(--dk);
 }
-.skip:hover:not(:disabled) { border-color: var(--accent); }
-.skip:disabled { opacity: 0.4; cursor: default; }
-.skip svg { width: 18px; height: 18px; fill: currentColor; }
-
-.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
-.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 13px; color: var(--muted); }
-select {
-  box-sizing: border-box; height: 36px; width: 100%; padding: 0 10px; border-radius: 8px;
-  border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; font-size: 14px;
+.sel select:focus-visible { outline: 0; background: var(--sel); color: var(--sel-ink); }
+.sel::after {
+  content: ''; position: absolute; top: 2px; right: 2px; bottom: 2px; width: 17px; pointer-events: none;
+  background: var(--face) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4'%3E%3Cpath d='M0 0h7L3.5 4z'/%3E%3C/svg%3E") center / 7px 4px no-repeat;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--lt), inset -2px -2px var(--sh), inset 2px 2px var(--hi);
 }
-.fine summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
-.fine summary::-webkit-details-marker { display: none; }
-.fine summary::after { content: ''; width: 8px; height: 8px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg); margin: -4px 4px 0 0; transition: transform .15s; }
-.fine[open] summary::after { transform: rotate(-135deg); margin-top: 4px; }
-.fine h2 span { color: var(--fg); }
-.fine[open] { gap: 16px; }
-.fine-acts { display: flex; justify-content: flex-end; gap: 16px; height: 36px; align-items: center; }
-.link { border: 0; background: none; padding: 0; font-size: 13px; color: var(--muted); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
-.link:hover { color: var(--fg); text-decoration-color: var(--accent); }
-.fine summary + .pair { margin-top: 14px; }
-.fx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-top: 16px; }
-.fx-grid .slider label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-@media (prefers-reduced-motion: reduce) { .play, .fine summary::after { transition: none; } }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; margin: 0; background: transparent; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--field); box-shadow: inset 1px 1px var(--sh), inset -1px -1px var(--hi), inset 2px 2px var(--dk); }
+input[type="range"]::-moz-range-track { height: 4px; background: var(--field); box-shadow: inset 1px 1px var(--sh), inset -1px -1px var(--hi), inset 2px 2px var(--dk); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 11px; height: 21px; margin-top: -9px; border: 0; background: var(--face);
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--sh), inset 2px 2px var(--lt);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 11px; height: 21px; border: 0; border-radius: 0; background: var(--face);
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--sh), inset 2px 2px var(--lt);
+}
+input[type="range"]:focus-visible { outline: 1px dotted var(--ink); outline-offset: 1px; }
+
+input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none; width: 13px; height: 13px; margin: 0; background: var(--field); flex: none; cursor: pointer;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--sh), inset -2px -2px var(--lt), inset 2px 2px var(--dk);
+}
+input[type="checkbox"]:checked {
+  background: var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7'%3E%3Cpath d='M0 2.5l2.5 2.5L7 .5V2.6L2.5 7 0 4.6z'/%3E%3C/svg%3E") center / 7px 7px no-repeat;
+}
+.check { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+
+.transport { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.transport .btn { height: 30px; }
+.session { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+.session .sel { width: 104px; }
+
+fieldset { margin: 0; border: 0; padding: 14px 12px 12px; min-width: 0; }
+legend { padding: 0 3px; }
+.mix { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) 104px; gap: 14px; align-items: end; }
+@media (max-width: 620px) { .mix { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.slider { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.slider .lab { display: flex; justify-content: space-between; align-items: center; gap: 6px; height: 16px; }
+.slider .lab > :first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slider output { font-variant-numeric: tabular-nums; flex: none; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field > span:first-child { height: 16px; display: flex; align-items: center; }
+
+/* Mode list */
+.modebox { display: flex; flex-direction: column; min-width: 0; padding: 14px 10px 10px; }
+.modes { flex: 1 1 auto; background: var(--field); padding: 2px; display: flex; flex-direction: column; }
+.modes-sub { padding: 3px 6px; background: var(--lt); font-weight: bold; }
+.mode { border: 0; background: none; text-align: left; padding: 4px 6px 4px 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+.mode:hover { background: var(--lt); }
+.mode[aria-checked="true"] { background: var(--sel); color: var(--sel-ink); }
+.mode:focus-visible { outline: 1px dotted var(--ink); outline-offset: -1px; }
+.mode[aria-checked="true"]:focus-visible { outline-color: #ffff00; }
+
+.status { display: flex; flex-wrap: wrap; gap: 2px; padding: 2px 0 0; font-variant-numeric: tabular-nums; }
+.status span { padding: 2px 6px; box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--sh); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status #status { flex: 1 1 200px; }
+.status span:not(#status) { flex: 0 1 auto; min-width: 90px; }
+
+/* Child windows (menus) */
+.dlg { position: absolute; z-index: 10; background: var(--face); padding: 3px; width: 280px; max-width: calc(100% - 8px); box-sizing: border-box; box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--lt), inset -2px -2px var(--sh), inset 2px 2px var(--hi), 3px 3px 0 rgba(0,0,0,0.35); }
+.dlg .titlebar { padding-right: 3px; }
+.dlg .x { border: 0; padding: 0; display: grid; place-items: center; cursor: pointer; }
+.dlg .x:active { box-shadow: inset 1px 1px var(--dk), inset -1px -1px var(--hi), inset 2px 2px var(--sh); }
+.dlg-body { padding: 12px 10px 10px; display: flex; flex-direction: column; gap: 12px; }
+.dlg-body p { margin: 0; }
+.dlg .sel { width: 100%; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
+.acts { display: flex; justify-content: flex-end; gap: 6px; }
+.acts .btn { min-width: 75px; }
+.fx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+#win-fine { width: 480px; }
+#win-help { width: 540px; }
+#win-help .dlg-body { max-height: min(60vh, 520px); overflow: auto; }
+#win-help h3 { margin: 0 0 2px; font-size: 13px; }
+#win-help a { color: var(--title); }
+.tracks { display: flex; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.tracks .now { overflow-wrap: anywhere; }
+.note { color: var(--dim); font-size: 12px; }
+.keys { font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .fx-grid, .pair { grid-template-columns: minmax(0, 1fr); } }
 </style>
 
-<div class="app">
-  <header class="top">
-    <div class="brand"><span class="mark" aria-hidden="true"></span>Quiet Engine</div>
-    <p class="tag">Focus music made live in your browser. It never repeats, and it pulses gently in the range brain.fm uses.</p>
-  </header>
+<div class="desk">
+<div class="win raised" id="win">
+  <div class="titlebar">
+    <div class="name">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#ffff00" stroke="#000"/><circle cx="8" cy="8" r="2.5" fill="#000080"/></svg>
+      <span id="winTitle">Quiet Engine</span>
+    </div>
+    <div class="tb-btns" aria-hidden="true"><span>_</span><span>□</span><span>×</span></div>
+  </div>
 
-  <main class="grid">
-    <section class="stage" aria-label="Now playing">
-      <div>
-        <div class="eyebrow" id="eyebrow">Deep Focus · ready</div>
-        <div class="chord" id="chord" aria-live="polite">Dmaj9</div>
-        <div class="meta" id="meta">D major · 120 BPM · pulse 16 Hz (32nd notes)</div>
-      </div>
-      <div class="spec-wrap"><canvas id="spec" aria-label="Live sound spectrum with the pulsed band from 200 Hz to 1 kHz shaded"></canvas></div>
-      <p class="cap" id="cap">Sound spectrum. The shaded band, 200 Hz to 1 kHz, is the only part that pulses. The rest of the sound stays steady.</p>
+  <nav class="menubar" aria-label="Menu">
+    <button data-win="tune" aria-expanded="false" aria-controls="win-tune" title="Tuning (Alt+T)"><u>T</u>uning</button>
+    <button data-win="bw" aria-expanded="false" aria-controls="win-bw" title="Brainwave tone (Alt+B)"><u>B</u>rainwaves</button>
+    <button data-win="fine" aria-expanded="false" aria-controls="win-fine" title="Fine-tune this mode (Alt+I)">F<u>i</u>ne-tune</button>
+    <button data-win="tracks" aria-expanded="false" aria-controls="win-tracks" title="Play your own audio files (Alt+M)"><u>M</u>y tracks</button>
+    <button data-win="help" aria-expanded="false" aria-controls="win-help" title="How it works (Alt+H)"><u>H</u>elp</button>
+  </nav>
+
+  <main class="body">
+    <div class="col">
+      <section class="lcd sunken" aria-label="Now playing">
+        <div class="lcd-top">
+          <div class="clock"><span class="t" id="time">25:00</span><span class="sub" id="timeSub">Press play or Space</span></div>
+          <div class="lcd-info">
+            <div class="marquee" id="marquee" aria-hidden="true"></div>
+            <div class="readout">
+              <span id="bpm">120 BPM</span><span class="on" id="chord" aria-live="polite">--</span><span id="pulseTxt" title="Pulse rate">Pulse 16 Hz</span><span class="off" id="stereo">Stereo</span>
+            </div>
+          </div>
+        </div>
+        <canvas id="spec" aria-label="Spectrum analyser. The bars marked Pulse, 200 Hz to 1 kHz, are the only part that pulses." title="The bars marked PULSE (200 Hz to 1 kHz) are the only part that pulses. The rest stays steady."></canvas>
+      </section>
+
       <div class="transport">
-        <button class="play" id="play" aria-label="Play">
-          <svg id="icoPlay" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
-          <svg id="icoPause" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/></svg>
+        <button class="btn main" id="play" aria-label="Play" title="Play or pause (Space)">
+          <svg id="icoPlay" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7-4.5z"/></svg>
+          <svg id="icoPause" viewBox="0 0 12 12" aria-hidden="true" hidden><path d="M2.5 1.5h2.6v9H2.5zM6.9 1.5h2.6v9H6.9z"/></svg>
+          <span id="playTxt">Play</span>
         </button>
-        <button class="skip" id="skip" aria-label="New track" title="New track (N): new sounds, beat, tempo and key" disabled>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 6v12l8.5-6zM15.5 6h2.6v12h-2.6z"/></svg>
+        <button class="btn" id="skip" title="New track (N): new sounds, beat, tempo and key" disabled>
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1.5v9l5.5-4.5zM8.3 1.5h1.8v9H8.3z"/></svg><span><u>N</u>ext track</span>
         </button>
-        <div class="timer"><span class="t" id="time">25:00</span><span class="sub" id="timeSub">Press play or Space</span></div>
-        <div class="session">
-          <span class="lbl" id="sessLbl">Session length</span>
-          <div class="seg" role="group" aria-labelledby="sessLbl" id="sess">
-            <button data-v="25" aria-pressed="true">25 min</button>
-            <button data-v="50" aria-pressed="false">50</button>
-            <button data-v="90" aria-pressed="false">90</button>
-            <button data-v="0" aria-pressed="false" aria-label="No time limit">∞</button>
+        <label class="session">Session:
+          <span class="sel"><select id="sess" title="Session length. A soft bell plays at the end and the music fades out.">
+            <option value="25">25 min</option><option value="50">50 min</option><option value="90">90 min</option><option value="0">No limit</option>
+          </select></span></label>
+      </div>
+
+      <fieldset class="groove">
+        <legend>Mix</legend>
+        <div class="mix">
+          <div class="slider">
+            <span class="lab"><label for="music">Music</label><output id="musicOut" for="music">80</output></span>
+            <input type="range" id="music" min="0" max="100" value="80">
           </div>
-        </div>
-      </div>
-    </section>
-
-    <aside class="controls">
-      <div class="block">
-        <h2 id="modeLbl">Mode</h2>
-        <div class="modes" role="radiogroup" aria-labelledby="modeLbl" id="modes"></div>
-        <label class="field"><span>Vibe</span>
-          <select id="vibe" title="Sets the fine-tune sliders for this mode in one go. Move any slider afterwards to make it your own."></select></label>
-      </div>
-
-      <div class="block">
-        <h2>Mix</h2>
-        <div class="slider">
-          <label for="music">Music</label><output id="musicOut" for="music">80</output>
-          <input type="range" id="music" min="0" max="100" value="80">
-        </div>
-        <div class="slider">
-          <label for="pulse">Pulse strength</label><output id="pulseOut" for="pulse">70</output>
-          <input type="range" id="pulse" min="0" max="100" value="70">
-          <div class="hint row"><span>Compare with and without:</span><button class="chip" id="pulseOn" aria-pressed="true">Pulse on</button></div>
-        </div>
-        <div class="slider">
-          <label for="warmth">Warmth</label><output id="warmthOut" for="warmth">45</output>
-          <input type="range" id="warmth" min="0" max="100" value="45">
-          <span class="hint">Rolls off the highs. Higher is softer and darker.</span>
-        </div>
-        <div class="slider">
-          <label for="noise">Background noise</label><output id="noiseOut" for="noise">20</output>
-          <input type="range" id="noise" min="0" max="100" value="20">
-          <div class="hint"><div class="seg" role="group" aria-label="Noise type" id="ntype">
-            <button data-v="brown" aria-pressed="true">Brown</button>
-            <button data-v="pink" aria-pressed="false">Pink</button>
-            <button data-v="rain" aria-pressed="false">Rain</button>
-          </div></div>
-        </div>
-      </div>
-
-      <div class="block">
-        <h2>Tuning and brainwaves</h2>
-        <div class="pair">
-          <label class="field"><span>Tuning</span>
-            <select id="tune" title="432 Hz tunes every note about a third of a semitone lower. Some people find it warmer.">
-              <option value="440">A = 440 Hz</option><option value="432">A = 432 Hz</option>
-            </select></label>
-          <label class="field"><span>Brainwave tone</span>
-            <select id="bw" title="Headphones: each ear gets a slightly different pitch and you hear the gap as a slow beat (binaural). Speakers: one tone that pulses at the beat rate. Research on both is mixed.">
-              <option value="off">Off</option>
-              <optgroup label="Headphones (binaural)">
-                <option value="b:gamma">Gamma 40 Hz · alert</option><option value="b:beta">Beta 18 Hz · focus</option>
-                <option value="b:alpha">Alpha 10 Hz · calm</option><option value="b:theta">Theta 6 Hz · deep relax</option>
-                <option value="b:delta">Delta 2.5 Hz · sleep</option>
-              </optgroup>
-              <optgroup label="Speakers (pulsed)">
-                <option value="i:gamma">Gamma 40 Hz · alert</option><option value="i:beta">Beta 18 Hz · focus</option>
-                <option value="i:alpha">Alpha 10 Hz · calm</option><option value="i:theta">Theta 6 Hz · deep relax</option>
-                <option value="i:delta">Delta 2.5 Hz · sleep</option>
-              </optgroup>
-            </select></label>
-        </div>
-        <div class="slider" id="bwLevelRow" hidden>
-          <label for="bwLevel">Tone level</label><output id="bwLevelOut" for="bwLevel">35</output>
-          <input type="range" id="bwLevel" min="0" max="100" value="35">
-        </div>
-      </div>
-
-      <details class="block fine" id="fine">
-        <summary><h2>Fine-tune <span id="fineMode">Deep Focus</span></h2></summary>
-        <div class="pair">
-          <label class="field"><span>Key</span><select id="fxKey"></select></label>
-          <div class="fine-acts">
-            <button class="link" id="fxShuffle" title="Random settings for this mode">Shuffle</button>
-            <button class="link" id="fxReset" title="Back to how this mode was designed">Reset</button>
+          <div class="slider">
+            <span class="lab"><label class="check" title="Turn the pulse off to compare with and without"><input type="checkbox" id="pulseOn" checked>Pulse</label><output id="pulseOut" for="pulse">70</output></span>
+            <input type="range" id="pulse" min="0" max="100" value="70" aria-label="Pulse strength" title="Pulse strength">
           </div>
+          <div class="slider" title="Rolls off the highs. Higher is softer and darker.">
+            <span class="lab"><label for="warmth">Warmth</label><output id="warmthOut" for="warmth">45</output></span>
+            <input type="range" id="warmth" min="0" max="100" value="45">
+          </div>
+          <div class="slider">
+            <span class="lab"><label for="noise">Noise</label><output id="noiseOut" for="noise">20</output></span>
+            <input type="range" id="noise" min="0" max="100" value="20" title="Background noise level">
+          </div>
+          <span class="sel"><select id="ntype" aria-label="Noise type" title="Noise type">
+            <option value="brown">Brown</option><option value="pink">Pink</option><option value="rain">Rain</option>
+          </select></span>
         </div>
-        <div class="fx-grid" id="fxGrid"></div>
-      </details>
+      </fieldset>
+    </div>
 
-      <div class="block">
-        <h2 id="srcLbl">Music source</h2>
-        <div class="seg" role="group" aria-labelledby="srcLbl" id="src">
-          <button data-v="gen" aria-pressed="true">Generated</button>
-          <button data-v="tracks" aria-pressed="false">My tracks</button>
-        </div>
-        <div class="files">
-          <input type="file" id="file" accept="audio/*" multiple hidden>
-          <button class="filebtn" id="fileBtn">Add audio files…</button>
-          <div class="tracks" id="tracks" hidden><span id="trackCount"></span><span class="now" id="trackNow"></span></div>
-          <p class="note" id="srcNote">Your files stay on this device. The pulse and warmth are added on top, but the pulse won't follow your song's beat.</p>
-        </div>
-      </div>
-    </aside>
+    <fieldset class="modebox groove">
+      <legend id="modeLbl">Mode</legend>
+      <div class="modes sunken" role="radiogroup" aria-labelledby="modeLbl" id="modes"></div>
+    </fieldset>
   </main>
 
-  <section class="how" aria-label="How it works">
-    <div>
-      <h3>The pulse</h3>
-      <p>The 200 Hz–1 kHz range gets louder and softer 16 times a second, in step with the beat (32nd notes at 120 BPM). These numbers come from brain.fm's own <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11499863/" target="_blank" rel="noopener">2024 study</a>. In it, 16 Hz at medium strength helped listeners with attention trouble most.</p>
+  <div class="status">
+    <span id="status">Ready</span><span id="keyTxt">D major</span><span id="bwTxt" hidden></span><span id="tuneTxt">A = 440 Hz</span>
+  </div>
+
+  <!-- Menu windows -->
+  <div class="dlg" id="win-tune" role="dialog" aria-labelledby="win-tune-t" hidden>
+    <div class="titlebar"><span id="win-tune-t">Tuning</span><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="dlg-body">
+      <label class="field"><span>Concert pitch</span>
+        <span class="sel"><select id="tune" title="432 Hz tunes every note about a third of a semitone lower. Some people find it warmer.">
+          <option value="440">A = 440 Hz</option><option value="432">A = 432 Hz</option>
+        </select></span></label>
     </div>
-    <div>
-      <h3>Music that never repeats</h3>
-      <p>Each piano voice repeats on its own clock, a few seconds to half a minute apart, so the pattern never lines up the same way twice. This is Brian Eno's tape-loop idea, borrowed from Generative.fm's open-source <a href="https://github.com/generativefm/generators" target="_blank" rel="noopener">Eno Machine</a>. Chords drift slowly through one key.</p>
+  </div>
+
+  <div class="dlg" id="win-bw" role="dialog" aria-labelledby="win-bw-t" hidden>
+    <div class="titlebar"><span id="win-bw-t">Brainwave tone</span><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="dlg-body">
+      <label class="field"><span>Tone</span>
+        <span class="sel"><select id="bw" title="Headphones: each ear gets a slightly different pitch and you hear the gap as a slow beat (binaural). Speakers: one tone that pulses at the beat rate. Research on both is mixed.">
+          <option value="off">Off</option>
+          <optgroup label="Headphones (binaural)">
+            <option value="b:gamma">Gamma 40 Hz · alert</option><option value="b:beta">Beta 18 Hz · focus</option>
+            <option value="b:alpha">Alpha 10 Hz · calm</option><option value="b:theta">Theta 6 Hz · deep relax</option>
+            <option value="b:delta">Delta 2.5 Hz · sleep</option>
+          </optgroup>
+          <optgroup label="Speakers (pulsed)">
+            <option value="i:gamma">Gamma 40 Hz · alert</option><option value="i:beta">Beta 18 Hz · focus</option>
+            <option value="i:alpha">Alpha 10 Hz · calm</option><option value="i:theta">Theta 6 Hz · deep relax</option>
+            <option value="i:delta">Delta 2.5 Hz · sleep</option>
+          </optgroup>
+        </select></span></label>
+      <div class="slider" id="bwLevelRow" hidden>
+        <span class="lab"><label for="bwLevel">Tone level</label><output id="bwLevelOut" for="bwLevel">35</output></span>
+        <input type="range" id="bwLevel" min="0" max="100" value="35">
+      </div>
     </div>
-    <div>
-      <h3>Noise and sessions</h3>
-      <p>The noise bed and session timer follow <a href="https://github.com/remvze/moodist" target="_blank" rel="noopener">Moodist</a>, an open-source ambient sound app. When a session ends, a soft bell plays and the music fades out.</p>
+  </div>
+
+  <div class="dlg" id="win-fine" role="dialog" aria-labelledby="win-fine-t" hidden>
+    <div class="titlebar"><span id="win-fine-t">Fine-tune - <span id="fineMode">Deep Focus</span></span><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="dlg-body">
+      <div class="pair">
+        <label class="field"><span>Vibe</span>
+          <span class="sel"><select id="vibe" title="Sets the sliders below for this mode in one go. Move any slider afterwards to make it your own."></select></span></label>
+        <label class="field"><span>Key</span><span class="sel"><select id="fxKey"></select></span></label>
+      </div>
+      <div class="fx-grid" id="fxGrid"></div>
+      <div class="acts">
+        <button class="btn" id="fxShuffle" title="Random settings for this mode">Shuffle</button>
+        <button class="btn" id="fxReset" title="Back to how this mode was designed">Reset</button>
+      </div>
     </div>
-    <p class="fine">The study found a modest effect, mostly in people with ADHD symptoms. Steady music with no surprises does most of the work. Everything here is made in your browser: no samples and no network calls.</p>
-  </section>
+  </div>
+
+  <div class="dlg" id="win-tracks" role="dialog" aria-labelledby="win-tracks-t" hidden>
+    <div class="titlebar"><span id="win-tracks-t">My tracks</span><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="dlg-body">
+      <label class="field"><span>Music source</span>
+        <span class="sel"><select id="src"><option value="gen">Generated</option><option value="tracks">My tracks</option></select></span></label>
+      <input type="file" id="file" accept="audio/*" multiple hidden>
+      <div class="acts" style="justify-content: flex-start"><button class="btn" id="fileBtn">Add audio files…</button></div>
+      <div class="tracks" id="tracks" hidden><span id="trackCount"></span><span class="now" id="trackNow"></span></div>
+      <p class="note" id="srcNote">Files stay on this device. Pulse and warmth go on top, but the pulse won't follow the song's beat.</p>
+    </div>
+  </div>
+
+  <div class="dlg" id="win-help" role="dialog" aria-labelledby="win-help-t" hidden>
+    <div class="titlebar"><span id="win-help-t">About Quiet Engine</span><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="dlg-body">
+      <p class="keys"><b>Space</b> play or pause · <b>N</b> next track</p>
+      <div>
+        <h3>The pulse</h3>
+        <p>The 200 Hz–1 kHz range gets louder and softer 16 times a second, in step with the beat (32nd notes at 120 BPM). These numbers come from brain.fm's own <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11499863/" target="_blank" rel="noopener">2024 study</a>. In it, 16 Hz at medium strength helped listeners with attention trouble most.</p>
+      </div>
+      <div>
+        <h3>Music that never repeats</h3>
+        <p>Each piano voice repeats on its own clock, a few seconds to half a minute apart, so the pattern never lines up the same way twice. This is Brian Eno's tape-loop idea, borrowed from Generative.fm's open-source <a href="https://github.com/generativefm/generators" target="_blank" rel="noopener">Eno Machine</a>. Next track makes a new song in the same genre: new sounds, beat, tempo and key.</p>
+      </div>
+      <div>
+        <h3>Noise and sessions</h3>
+        <p>The noise bed and session timer follow <a href="https://github.com/remvze/moodist" target="_blank" rel="noopener">Moodist</a>, an open-source ambient sound app. When a session ends, a soft bell plays and the music fades out.</p>
+      </div>
+      <p class="note">The study found a modest effect, mostly in people with ADHD symptoms. Steady music with no surprises does most of the work. Everything is made in your browser: no samples and no network calls. Source and fork: <a href="https://github.com/mattseesass/quiet-engine" target="_blank" rel="noopener">GitHub</a>.</p>
+    </div>
+  </div>
+</div>
+<p class="foot">Made live in your browser. No samples.</p>
 </div>
 
 <script>
@@ -1380,20 +1435,42 @@ let tracks = [], trackIdx = 0;
 
 function fmt(sec) { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, s = sec % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0'); }
 
-// Mode buttons
+// Every generated track gets a name and a number, so a skip feels like a new song
+const NAME_A = ['Neon', 'Velvet', 'Silent', 'Golden', 'Hollow', 'Paper', 'Glass', 'Midnight', 'Amber', 'Static', 'Lunar', 'Quiet', 'Electric', 'Faded', 'Crystal',
+  'Distant', 'Chrome', 'Soft', 'Cobalt', 'Coral', 'Slow', 'Northern', 'Hidden', 'Sunday', 'Magnetic', 'Indigo', 'Dusty', 'Floating', 'Copper', 'Open'];
+const NAME_B = ['Harbor', 'Signal', 'Garden', 'Avenue', 'Tides', 'Lanterns', 'Orbit', 'Rooms', 'Rivers', 'Skyline', 'Echoes', 'Window', 'Machine', 'Atlas', 'Motel',
+  'Arcade', 'Meadow', 'Satellite', 'Cassette', 'Lagoon', 'Highway', 'Mirrors', 'Daylight', 'Bloom', 'Circuit', 'Station', 'Horizon', 'Weather', 'Valley', 'Lights'];
+let trackName = '', trackNo = 1;
+function newTrack(first) {
+  let n; do n = pick(NAME_A) + ' ' + pick(NAME_B); while (n === trackName);
+  trackName = n; trackNo = first ? 1 : trackNo + 1; syncTitle();
+}
+
+// Mode list
 const modesEl = $('#modes');
 for (const m of Object.values(MODES)) {
-  if (m.id === 'synth') { const h = document.createElement('div'); h.className = 'modes-sub'; h.textContent = 'Genres, with drums'; modesEl.appendChild(h); }
+  if (m.id === 'deep' || m.id === 'synth') {
+    const h = document.createElement('div'); h.className = 'modes-sub'; h.textContent = m.id === 'deep' ? 'Focus' : 'Genres';
+    h.setAttribute('aria-hidden', 'true'); modesEl.appendChild(h);
+  }
   const b = document.createElement('button');
-  b.className = 'mode'; b.setAttribute('role', 'radio'); b.dataset.id = m.id;
-  b.innerHTML = `<span class="n">${m.name}</span><span class="u">${m.use}</span><span class="h">${m.pulse ? pulseHz(m) + ' Hz pulse' : 'no pulse'} · ${m.bpm} BPM</span>`;
+  b.className = 'mode'; b.setAttribute('role', 'radio'); b.dataset.id = m.id; b.textContent = m.name;
+  b.title = `${m.use} · ${m.pulse ? pulseHz(m) + ' Hz pulse' : 'no pulse'} · ${m.bpm} BPM`;
   b.addEventListener('click', () => setMode(m.id));
   modesEl.appendChild(b);
 }
+modesEl.addEventListener('keydown', e => { // arrow keys move through the list like a real listbox
+  const d = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+  if (!d) return;
+  e.preventDefault();
+  const ids = Object.keys(MODES), id = ids[(ids.indexOf(S.mode) + d + ids.length) % ids.length];
+  setMode(id); modesEl.querySelector(`[data-id="${id}"]`).focus();
+});
 function setMode(id) {
+  if (id === S.mode && eng) return;
   S.mode = id; S.pulse = MODES[id].pulse; save();
   if (eng) { eng.s.pulse = S.pulse; eng.switchMode(id); eng.applySettings(); }
-  syncUI();
+  newTrack(true); syncUI();
 }
 
 function bindSlider(id) {
@@ -1402,16 +1479,13 @@ function bindSlider(id) {
 }
 ['music', 'pulse', 'warmth', 'noise'].forEach(bindSlider);
 
-function bindSeg(id, onPick) {
-  $('#' + id).addEventListener('click', e => { const b = e.target.closest('button'); if (b) onPick(b.dataset.v); });
-}
-bindSeg('ntype', v => { S.noiseType = v; save(); if (eng) eng.set('noiseType', v); syncUI(); });
-bindSeg('sess', v => { S.session = +v; save(); if (!playing || S.session === 0) left = S.session * 60; else left = Math.max(0, S.session * 60 - elapsed); syncUI(); syncTime(); });
-bindSeg('src', v => {
-  if (v === 'tracks' && !tracks.length) { $('#file').click(); return; }
-  setSource(v);
+$('#ntype').addEventListener('change', e => { S.noiseType = e.target.value; save(); if (eng) eng.set('noiseType', S.noiseType); });
+$('#sess').addEventListener('change', e => { S.session = +e.target.value; save(); if (!playing || S.session === 0) left = S.session * 60; else left = Math.max(0, S.session * 60 - elapsed); syncUI(); syncTime(); });
+$('#src').addEventListener('change', e => {
+  if (e.target.value === 'tracks' && !tracks.length) { e.target.value = S.source; $('#file').click(); return; }
+  setSource(e.target.value);
 });
-$('#pulseOn').addEventListener('click', () => { S.pulseOn = !S.pulseOn; save(); if (eng) eng.set('pulseOn', S.pulseOn); syncUI(); });
+$('#pulseOn').addEventListener('change', e => { S.pulseOn = e.target.checked; save(); if (eng) eng.set('pulseOn', S.pulseOn); syncUI(); });
 
 function setSource(v) {
   S.source = v;
@@ -1431,16 +1505,16 @@ $('#file').addEventListener('change', e => {
 function skip() { // generated: a fresh track in the same mode; your files: the next file
   if (!eng || !playing) return;
   if (S.source === 'tracks') { if (tracks.length) { trackIdx = (trackIdx + 1) % tracks.length; playTrack(trackIdx); syncUI(); } }
-  else { eng.regenerate(); syncUI(); }
+  else { eng.regenerate(); newTrack(); syncUI(); }
 }
 $('#skip').addEventListener('click', skip);
 
 // Tuning and brainwave tone
-$('#tune').addEventListener('change', e => { S.tune = +e.target.value; TUNE = S.tune; save(); if (eng) eng.retime(); syncMeta(); });
+$('#tune').addEventListener('change', e => { S.tune = +e.target.value; TUNE = S.tune; save(); if (eng) eng.retime(); syncUI(); });
 $('#bw').addEventListener('change', e => { S.bw = e.target.value; save(); if (eng) eng.setBrainwave(S.bw, S.bwLevel); syncUI(); });
 $('#bwLevel').addEventListener('input', e => { S.bwLevel = +e.target.value; $('#bwLevelOut').value = S.bwLevel; save(); if (eng) eng.setBrainwaveLevel(S.bwLevel); });
 
-// Fine-tune panel: one set of sliders per mode. Drum-only sliders hide in the focus modes.
+// Fine-tune window: one set of sliders per mode. Drum-only sliders hide in the focus modes.
 const FX = [
   { k: 'tempo', n: 'Tempo', min: -15, max: 15, hint: 'Faster or slower. The pulse follows the beat.' },
   { k: 'energy', n: 'Energy', groove: true, hint: 'More hats and ghost notes and fewer breakdowns, or a sparser groove.' },
@@ -1460,7 +1534,7 @@ const fxGrid = $('#fxGrid');
 for (const d of FX) {
   const el = document.createElement('div');
   el.className = 'slider'; el.dataset.k = d.k; el.title = d.hint;
-  el.innerHTML = `<label for="fx-${d.k}">${d.n}</label><output id="fx-${d.k}Out" for="fx-${d.k}"></output>
+  el.innerHTML = `<span class="lab"><label for="fx-${d.k}">${d.n}</label><output id="fx-${d.k}Out" for="fx-${d.k}"></output></span>
     <input type="range" id="fx-${d.k}" min="${d.min ?? 0}" max="${d.max ?? 100}" value="50">`;
   const input = el.querySelector('input');
   input.addEventListener('input', () => {
@@ -1522,6 +1596,30 @@ async function playTrack(i) {
   catch (err) { $('#trackNow').textContent = tracks[i].name + ' could not be played. Try an MP3 or WAV file.'; }
 }
 
+// Menu windows: one open at a time, under its menu item. Escape or a click outside closes it.
+const winEl = $('#win');
+let openWin = null;
+function showWin(id) {
+  const was = openWin && openWin.id;
+  hideWin();
+  if (was === 'win-' + id) return;
+  const btn = $(`.menubar [data-win="${id}"]`), d = $('#win-' + id);
+  d.hidden = false; btn.setAttribute('aria-expanded', 'true'); openWin = d;
+  d.style.top = (btn.offsetTop + btn.offsetHeight + 1) + 'px';
+  d.style.left = Math.max(4, Math.min(btn.offsetLeft, winEl.clientWidth - d.offsetWidth - 4)) + 'px';
+  const f = d.querySelector('select, input:not([type="file"]), .dlg-body button, .dlg-body a'); if (f) f.focus();
+}
+function hideWin(refocus) {
+  if (!openWin) return;
+  const btn = $(`.menubar [aria-controls="${openWin.id}"]`);
+  openWin.hidden = true; btn.setAttribute('aria-expanded', 'false'); openWin = null;
+  if (refocus) btn.focus();
+}
+document.querySelectorAll('.menubar [data-win]').forEach(b => b.addEventListener('click', () => showWin(b.dataset.win)));
+document.querySelectorAll('.dlg [data-close]').forEach(b => b.addEventListener('click', () => hideWin(true)));
+document.addEventListener('pointerdown', e => { if (openWin && !openWin.contains(e.target) && !e.target.closest('.menubar')) hideWin(); });
+const ALT = { KeyT: 'tune', KeyB: 'bw', KeyI: 'fine', KeyM: 'tracks', KeyH: 'help' };
+
 async function togglePlay() {
   if (!ctx) {
     ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'playback' });
@@ -1545,7 +1643,9 @@ async function togglePlay() {
 }
 $('#play').addEventListener('click', togglePlay);
 document.addEventListener('keydown', e => {
-  if (e.target.closest('input, button, select')) return;
+  if (e.altKey && ALT[e.code]) { e.preventDefault(); showWin(ALT[e.code]); return; }
+  if (e.key === 'Escape' && openWin) { hideWin(true); return; }
+  if (e.target.closest('input, button, select, a')) return;
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
   else if (e.code === 'KeyN') skip();
 });
@@ -1562,117 +1662,116 @@ setInterval(() => {
     }
   }
   syncTime();
-  if (S.source === 'gen') {
-    const c = eng.currentChord(ctx.currentTime);
-    if (c && $('#chord').textContent !== c.name) $('#chord').textContent = c.name;
-    syncMeta();
-  }
+  if (S.source === 'gen') syncMeta();
 }, 500);
 
 function syncTime() {
   const sub = $('#timeSub');
   if (S.session) {
     $('#time').textContent = fmt(left);
-    sub.textContent = ending && !playing ? 'Session complete. Press play for another' : ending ? 'Fading out…' : playing ? 'left in this session' : (ctx ? 'Paused' : 'Press play or Space');
+    sub.textContent = ending && !playing ? 'Session complete' : ending ? 'Fading out…' : playing ? 'Left of ' + fmt(S.session * 60) : (ctx ? 'Paused' : 'Press play or Space');
   } else {
     $('#time').textContent = fmt(elapsed);
-    sub.textContent = playing ? 'elapsed, no time limit' : (ctx ? 'Paused' : 'Press play or Space');
+    sub.textContent = playing ? 'Elapsed' : (ctx ? 'Paused' : 'Press play or Space');
   }
 }
 function syncMeta() {
-  const m = MODES[S.mode], pulseTxt = !S.pulseOn || !S.pulse ? 'pulse off' : `pulse ${pulseHz(m)} Hz`;
-  if (S.source === 'tracks') {
-    $('#meta').textContent = `Your tracks · ${pulseTxt}${S.pulseOn && S.pulse ? ' (not synced to the song)' : ''}`;
-    return;
-  }
-  const c = eng && eng.currentChord(ctx.currentTime), bpm = effBpm(S.mode);
+  const m = MODES[S.mode], mine = S.source === 'tracks' && tracks.length;
+  const bpm = effBpm(S.mode), pulseOn = S.pulseOn && S.pulse;
+  const c = !mine && eng && playing && eng.currentChord(ctx.currentTime);
+  $('#bpm').hidden = $('#chord').hidden = !!mine;
+  $('#bpm').textContent = bpm + ' BPM';
+  if ($('#chord').textContent !== (c ? c.name : '--')) $('#chord').textContent = c ? c.name : '--';
+  $('#pulseTxt').textContent = !pulseOn ? 'Pulse off' : `Pulse ${mine ? pulseHz(m) : +(bpm / 60 * m.div).toFixed(1)} Hz`;
+  $('#pulseTxt').title = !pulseOn ? 'Pulse off' : mine ? 'Not synced to your song' : 'Pulse rate: ' + divName(m);
   const fk = fxFor(S, S.mode).key, pc = fk === 'auto' ? m.keys[0] % 12 : +fk;
-  const keyTxt = c ? c.key : spell(pc, m.minor) + (m.minor ? ' minor' : ' major');
-  const pulseOn = S.pulseOn && S.pulse, rate = +(bpm / 60 * m.div).toFixed(1);
-  $('#meta').textContent = `${keyTxt} · ${bpm} BPM · ${pulseOn ? `pulse ${rate} Hz (${divName(m)})` : 'pulse off'}${S.tune === 432 ? ' · A = 432' : ''}`;
+  $('#keyTxt').textContent = mine ? 'Your tracks' : c ? c.key : spell(pc, m.minor) + (m.minor ? ' minor' : ' major');
 }
+function syncTitle() {
+  const mine = S.source === 'tracks' && tracks.length, name = mine ? tracks[trackIdx].name.replace(/\.[^.]+$/, '') : trackName;
+  $('#winTitle').textContent = 'Quiet Engine - ' + name;
+  const t = mine ? `*** ${name} *** Your tracks · ${trackIdx + 1} of ${tracks.length} ***` : `*** ${name} *** ${MODES[S.mode].name} · track ${trackNo} ***`;
+  const next = (t + '   ').padEnd(56, ' ');
+  if (next !== marqueeText) { marqueeText = next; marqueeAt = 0; drawMarquee(); }
+}
+let marqueeText = '', marqueeAt = 0;
+function drawMarquee() { $('#marquee').textContent = marqueeText.slice(marqueeAt) + marqueeText.slice(0, marqueeAt); }
+const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+setInterval(() => { if (playing && !reduce.matches) { marqueeAt = (marqueeAt + 1) % marqueeText.length; drawMarquee(); } }, 260);
+
 function syncUI() {
-  const m = MODES[S.mode];
-  modesEl.querySelectorAll('.mode').forEach(b => b.setAttribute('aria-checked', String(b.dataset.id === S.mode)));
+  modesEl.querySelectorAll('.mode').forEach(b => { const on = b.dataset.id === S.mode; b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1; });
   for (const id of ['music', 'pulse', 'warmth', 'noise']) { $('#' + id).value = S[id]; $('#' + id + 'Out').value = S[id]; }
-  const segs = { ntype: S.noiseType, sess: String(S.session), src: S.source };
-  for (const id in segs) $('#' + id).querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === segs[id])));
-  const pb = $('#pulseOn'); pb.setAttribute('aria-pressed', String(S.pulseOn)); pb.textContent = S.pulseOn ? 'Pulse on' : 'Pulse off';
+  $('#ntype').value = S.noiseType; $('#sess').value = String(S.session); $('#src').value = S.source;
+  $('#pulseOn').checked = S.pulseOn;
   $('#tune').value = String(S.tune); $('#bw').value = S.bw; $('#bwLevelRow').hidden = S.bw === 'off';
   $('#bwLevel').value = S.bwLevel; $('#bwLevelOut').value = S.bwLevel;
   $('#skip').disabled = !playing;
   $('#skip').title = S.source === 'tracks' ? 'Next track (N)' : 'New track (N): new sounds, beat, tempo and key';
   syncFine();
-  $('#play').setAttribute('aria-label', playing ? 'Pause' : 'Play');
+  $('#play').setAttribute('aria-label', playing ? 'Pause' : 'Play'); $('#playTxt').textContent = playing ? 'Pause' : 'Play';
   $('#icoPlay').toggleAttribute('hidden', playing); $('#icoPause').toggleAttribute('hidden', !playing); // SVG has no .hidden property
-  $('#eyebrow').textContent = m.name + ' · ' + (playing ? (S.source === 'tracks' ? 'your tracks' : 'generating') : ctx ? 'paused' : 'ready');
+  $('#stereo').className = playing ? 'on' : 'off';
+  $('#status').textContent = playing ? (S.source === 'tracks' ? 'Playing your tracks' : 'Playing ' + MODES[S.mode].name) : ctx ? 'Paused' : 'Ready';
+  $('#tuneTxt').textContent = 'A = ' + S.tune + ' Hz';
+  const bwOpt = $('#bw').selectedOptions[0];
+  $('#bwTxt').hidden = S.bw === 'off'; $('#bwTxt').textContent = S.bw === 'off' ? '' : bwOpt.textContent.split(' · ')[0] + (S.bw[0] === 'b' ? ' binaural' : ' pulsed');
   const tr = $('#tracks'); tr.hidden = !tracks.length;
   if (tracks.length) {
     $('#trackCount').textContent = tracks.length + (tracks.length === 1 ? ' track' : ' tracks');
-    $('#trackNow').textContent = S.source === 'tracks' ? 'Now: ' + tracks[trackIdx].name : 'Switch to My tracks to play them';
+    $('#trackNow').textContent = S.source === 'tracks' ? 'Now: ' + tracks[trackIdx].name : 'Pick My tracks above to play them';
   }
-  if (S.source === 'tracks' && tracks.length) $('#chord').textContent = tracks[trackIdx].name.replace(/\.[^.]+$/, '');
-  syncMeta();
+  syncTitle(); syncMeta();
 }
 
-/* ---------- spectrum ---------- */
+/* ---------- spectrum: Winamp-style segmented bars on the LCD ---------- */
 const cv = $('#spec'), g2 = cv.getContext('2d');
-const FMIN = 40, FMAX = 14000, NPTS = 180;
-const smooth = new Float32Array(NPTS).fill(-95);
-let colors = {}, frame = 0, fbuf = null;
-const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-function readColors() { const cs = getComputedStyle(document.documentElement); for (const k of ['fg', 'muted', 'line', 'accent', 'accent-soft', 'cool']) colors[k] = cs.getPropertyValue('--' + k).trim(); colors.monoFont = cs.getPropertyValue('--mono'); }
-function restCurve(f) { return -38 - 7.5 * Math.log2(f / 120) * (f > 120 ? 1 : -0.6) + 4 * Math.sin(Math.log2(f) * 2.3); }
+const FMIN = 40, FMAX = 14000, SEGS = 14, LCD = { on: '#00e000', mid: '#e8e800', top: '#ff3030', off: '#0a2a0a', peak: '#d0d0d0', label: '#00b000', dim: '#006000' };
+const lv = [], pk = [];
+let fbuf = null;
 function draw() {
   const dpr = Math.min(2, window.devicePixelRatio || 1), W = cv.clientWidth, H = cv.clientHeight;
   if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
-  if (frame++ % 60 === 0) readColors();
   g2.setTransform(dpr, 0, 0, dpr, 0, 0); g2.clearRect(0, 0, W, H);
-  const lx = f => W * Math.log(f / FMIN) / Math.log(FMAX / FMIN);
-  const top = 18, bot = H - 22, MIN = -100, MAX = -25;
-  const y = db => bot - (Math.max(MIN, Math.min(MAX, db)) - MIN) / (MAX - MIN) * (bot - top);
-  // pulsed band
-  const pulsing = S.pulseOn && S.pulse > 0;
-  g2.fillStyle = colors['accent-soft']; g2.fillRect(lx(200), top - 4, lx(1000) - lx(200), bot - top + 4);
-  g2.font = '500 11px ' + colors.monoFont;
-  g2.fillStyle = colors.accent; g2.textBaseline = 'top';
-  g2.fillText(pulsing ? 'PULSED BAND' : 'PULSE OFF', lx(200) + 6, top - 2);
-  // grid
-  g2.fillStyle = colors.muted; g2.textBaseline = 'alphabetic'; g2.strokeStyle = colors.line; g2.lineWidth = 1;
-  for (const [f, l] of [[100, '100'], [200, '200'], [500, '500'], [1000, '1k'], [2000, '2k'], [5000, '5k'], [10000, '10k']]) {
-    const x = Math.round(lx(f)) + 0.5;
-    g2.beginPath(); g2.moveTo(x, top); g2.lineTo(x, bot); g2.stroke();
-    g2.fillText(l + (f === 10000 ? ' Hz' : ''), Math.min(x + 3, W - 34), H - 6);
-  }
-  // curve
+  const NB = Math.max(16, Math.min(40, Math.floor(W / 17))), gap = 3, bw = (W - gap * (NB - 1)) / NB;
+  const bot = H - 18, sg = 2, sh = (bot - sg * (SEGS - 1)) / SEGS, MIN = -100, MAX = -25;
   const live = eng && playing;
   if (live) { if (!fbuf) fbuf = new Float32Array(eng.analyser.frequencyBinCount); eng.analyser.getFloatFrequencyData(fbuf); }
   const binHz = live ? ctx.sampleRate / eng.analyser.fftSize : 1;
-  for (let i = 0; i < NPTS; i++) {
-    const f = FMIN * Math.pow(FMAX / FMIN, i / (NPTS - 1));
-    let db;
-    if (live) { // average the bins around this point so the line stays calm
-      const f2 = FMIN * Math.pow(FMAX / FMIN, (i + 1) / (NPTS - 1));
-      const a = Math.max(1, Math.floor(f / binHz)), b = Math.max(a + 1, Math.ceil(f2 / binHz));
-      let s = 0; for (let k = a; k < b; k++) s += fbuf[k]; db = s / (b - a) + 6 * Math.log2(f / 500) * 0.5;
-    } else db = restCurve(f);
-    if (!isFinite(db)) db = MIN - 10; // silent bins read -Infinity
-    smooth[i] += (Math.max(MIN - 10, db) - smooth[i]) * (live ? 0.12 : 0.08);
+  let bandA = -1, bandB = -1;
+  for (let i = 0; i < NB; i++) {
+    const f1 = FMIN * Math.pow(FMAX / FMIN, i / NB), f2 = FMIN * Math.pow(FMAX / FMIN, (i + 1) / NB), fc = Math.sqrt(f1 * f2);
+    if (fc >= 200 && fc <= 1000) { if (bandA < 0) bandA = i; bandB = i; }
+    let target = 0;
+    if (live) { // average the bins in this bar so it stays calm
+      const a = Math.max(1, Math.floor(f1 / binHz)), b = Math.max(a + 1, Math.ceil(f2 / binHz));
+      let s = 0; for (let k = a; k < b; k++) s += fbuf[k];
+      const db = s / (b - a) + 3 * Math.log2(fc / 500);
+      target = isFinite(db) ? Math.max(0, Math.min(1, (db - MIN) / (MAX - MIN))) : 0; // silent bins read -Infinity
+    }
+    lv[i] = lv[i] || 0; lv[i] += (target - lv[i]) * (target > lv[i] ? 0.45 : 0.12);
+    pk[i] = Math.max((pk[i] || 0) - 0.005, lv[i]);
+    const n = Math.round(lv[i] * SEGS), p = Math.round(pk[i] * SEGS) - 1, x = i * (bw + gap);
+    for (let k = 0; k < SEGS; k++) {
+      g2.fillStyle = k < n ? (k >= SEGS - 2 ? LCD.top : k >= SEGS - 5 ? LCD.mid : LCD.on) : k === p && p >= n ? LCD.peak : LCD.off;
+      g2.fillRect(x, bot - (k + 1) * sh - k * sg, bw, sh);
+    }
   }
-  g2.beginPath();
-  for (let i = 0; i < NPTS; i++) { const x = W * i / (NPTS - 1), yy = y(smooth[i]); i ? g2.lineTo(x, yy) : g2.moveTo(x, yy); }
-  g2.lineTo(W, bot); g2.lineTo(0, bot); g2.closePath();
-  const grad = g2.createLinearGradient(0, top, 0, bot);
-  grad.addColorStop(0, colors.cool + '55'); grad.addColorStop(1, colors.cool + '00');
-  g2.fillStyle = grad; g2.fill();
-  g2.lineWidth = 2; g2.lineJoin = 'round';
-  g2.strokeStyle = colors.cool; g2.beginPath();
-  for (let i = 0; i < NPTS; i++) { const x = W * i / (NPTS - 1), yy = y(smooth[i]); i ? g2.lineTo(x, yy) : g2.moveTo(x, yy); }
-  g2.stroke();
+  // mark the pulsed band (200 Hz – 1 kHz) under its bars
+  if (bandA >= 0) {
+    const pulsing = S.pulseOn && S.pulse > 0, xa = bandA * (bw + gap), xb = bandB * (bw + gap) + bw;
+    g2.fillStyle = pulsing ? LCD.label : LCD.dim;
+    g2.fillRect(xa, bot + 4, xb - xa, 1); g2.fillRect(xa, bot + 4, 1, 4); g2.fillRect(xb - 1, bot + 4, 1, 4);
+    g2.font = '16px ' + getComputedStyle(document.documentElement).getPropertyValue('--lcd-font');
+    g2.textAlign = 'center'; g2.textBaseline = 'bottom';
+    const label = pulsing ? 'PULSE' : 'PULSE OFF', tw = g2.measureText(label).width + 8;
+    g2.fillStyle = '#000'; g2.fillRect((xa + xb) / 2 - tw / 2, bot + 2, tw, 16);
+    g2.fillStyle = pulsing ? LCD.label : LCD.dim; g2.fillText(label, (xa + xb) / 2, H + 1);
+  }
   if (reduce.matches) setTimeout(() => requestAnimationFrame(draw), 250); else requestAnimationFrame(draw);
 }
 
-readColors();
+newTrack(true);
 syncUI(); syncTime();
 requestAnimationFrame(draw);
 window.QuietEngine = { renderOffline, MODES };
