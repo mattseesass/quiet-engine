@@ -2028,6 +2028,7 @@ $('#ytAdd').addEventListener('click', async () => {
   pickMix(id, playing);
 });
 $('#ytDel').addEventListener('click', () => { S.ytMine = S.ytMine.filter(m => m.id !== S.yt.mix); pickMix(MIXES[0].id, playing); });
+if (location.protocol === 'file:') $('#ytNote').textContent = 'YouTube won\'t play in a double-clicked file. Open "Start Quiet Engine.cmd" in the same folder instead, or the web version: mattseesass.github.io/quiet-engine';
 
 function fmt(sec) { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, s = sec % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0'); }
 
