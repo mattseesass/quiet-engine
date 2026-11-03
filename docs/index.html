@@ -90,6 +90,9 @@ u { text-underline-offset: 1px; }
 .readout .on { color: var(--lcd-on); }
 .readout .off { color: var(--lcd-off); }
 canvas#spec { width: 100%; height: 150px; display: block; }
+.tv { aspect-ratio: 16 / 9; background: #000; }
+.tv iframe { width: 100%; height: 100%; border: 0; display: block; }
+canvas#spec[hidden], .tv[hidden] { display: none; }
 @media (max-width: 520px) {
   .lcd-top { flex-direction: column; align-items: stretch; gap: 8px; }
   .clock .t { font-size: 60px; }
@@ -157,6 +160,8 @@ legend { padding: 0 3px; }
 .slider .lab { display: flex; justify-content: space-between; align-items: center; gap: 6px; height: 16px; }
 .slider .lab > :first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .slider output { font-variant-numeric: tabular-nums; flex: none; }
+.slider.off { color: var(--dim); }
+.slider.off input { cursor: default; }
 .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .field > span:first-child { height: 16px; display: flex; align-items: center; }
 
@@ -194,6 +199,15 @@ legend { padding: 0 3px; }
 #win-help .dlg-body { max-height: min(60vh, 520px); overflow: auto; }
 #win-help h3 { margin: 0 0 2px; font-size: 13px; }
 #win-help a { color: var(--title); }
+.src-pane { display: flex; flex-direction: column; gap: 12px; }
+.src-pane[hidden] { display: none; }
+.dlg input[type="url"], .dlg textarea { box-sizing: border-box; width: 100%; border: 0; border-radius: 0; background: var(--field); color: var(--ink); font: inherit; padding: 4px 5px; box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--sh), inset -2px -2px var(--lt), inset 2px 2px var(--dk); }
+.dlg input[type="url"] { height: 26px; }
+.dlg textarea { resize: vertical; min-height: 52px; }
+.mixsel { width: 100%; margin-bottom: 6px; }
+.mixsel[hidden], .modes[hidden] { display: none; }
+.mode .at { float: right; margin-left: 8px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.mode[aria-checked="true"] .at { color: inherit; }
 .tracks { display: flex; gap: 8px; flex-wrap: wrap; min-width: 0; }
 .tracks .now { overflow-wrap: anywhere; }
 .note { color: var(--dim); font-size: 12px; }
@@ -215,7 +229,7 @@ legend { padding: 0 3px; }
     <button data-win="tune" aria-expanded="false" aria-controls="win-tune" title="Tuning (Alt+T)"><u>T</u>uning</button>
     <button data-win="bw" aria-expanded="false" aria-controls="win-bw" title="Brainwave tone (Alt+B)"><u>B</u>rainwaves</button>
     <button data-win="fine" aria-expanded="false" aria-controls="win-fine" title="Fine-tune this mode (Alt+I)">F<u>i</u>ne-tune</button>
-    <button data-win="tracks" aria-expanded="false" aria-controls="win-tracks" title="Play your own audio files (Alt+M)"><u>M</u>y tracks</button>
+    <button data-win="tracks" aria-expanded="false" aria-controls="win-tracks" title="Music source: generated, YouTube mixes or your own files (Alt+M)"><u>M</u>usic</button>
     <button data-win="help" aria-expanded="false" aria-controls="win-help" title="How it works (Alt+H)"><u>H</u>elp</button>
   </nav>
 
@@ -231,6 +245,7 @@ legend { padding: 0 3px; }
             </div>
           </div>
         </div>
+        <div class="tv" id="tv" hidden></div>
         <canvas id="spec" aria-label="Spectrum analyser. The bars marked Pulse, 200 Hz to 1 kHz, are the only part that pulses." title="The bars marked PULSE (200 Hz to 1 kHz) are the only part that pulses. The rest stays steady."></canvas>
       </section>
 
@@ -277,7 +292,9 @@ legend { padding: 0 3px; }
 
     <fieldset class="modebox groove">
       <legend id="modeLbl">Mode</legend>
+      <span class="sel mixsel" hidden><select id="mix" aria-label="Mix" title="Which mix"></select></span>
       <div class="modes sunken" role="radiogroup" aria-labelledby="modeLbl" id="modes"></div>
+      <div class="modes sunken" role="radiogroup" aria-label="Tracklist" id="ytTracks" hidden></div>
     </fieldset>
   </main>
 
@@ -337,14 +354,22 @@ legend { padding: 0 3px; }
   </div>
 
   <div class="dlg" id="win-tracks" role="dialog" aria-labelledby="win-tracks-t" hidden>
-    <div class="titlebar"><span id="win-tracks-t">My tracks</span><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="titlebar"><span id="win-tracks-t">Music</span><button class="x" data-close aria-label="Close">×</button></div>
     <div class="dlg-body">
       <label class="field"><span>Music source</span>
-        <span class="sel"><select id="src"><option value="gen">Generated</option><option value="tracks">My tracks</option></select></span></label>
-      <input type="file" id="file" accept="audio/*" multiple hidden>
-      <div class="acts" style="justify-content: flex-start"><button class="btn" id="fileBtn">Add audio files…</button></div>
-      <div class="tracks" id="tracks" hidden><span id="trackCount"></span><span class="now" id="trackNow"></span></div>
-      <p class="note" id="srcNote">Files stay on this device. Pulse and warmth go on top, but the pulse won't follow the song's beat.</p>
+        <span class="sel"><select id="src"><option value="gen">Generated</option><option value="yt">YouTube mixes</option><option value="tracks">My tracks</option></select></span></label>
+      <div class="src-pane" id="paneTracks">
+        <input type="file" id="file" accept="audio/*" multiple hidden>
+        <div class="acts" style="justify-content: flex-start"><button class="btn" id="fileBtn">Add audio files…</button></div>
+        <div class="tracks" id="tracks" hidden><span id="trackCount"></span><span class="now" id="trackNow"></span></div>
+        <p class="note">Files stay on this device. Pulse and warmth go on top, but the pulse won't follow the song's beat.</p>
+      </div>
+      <div class="src-pane" id="paneYt" hidden>
+        <label class="field"><span>Add a mix</span><input type="url" id="ytUrl" placeholder="YouTube link" autocomplete="off"></label>
+        <label class="field" title="Paste the video description. Lines that start with a time, like [02:51] or 2:51, become the tracklist."><span>Tracklist (optional)</span><textarea id="ytList" rows="3" placeholder="Paste the description"></textarea></label>
+        <div class="acts"><button class="btn" id="ytDel" hidden title="Remove the selected mix from your list">Remove mix</button><button class="btn" id="ytAdd">Add</button></div>
+        <p class="note" id="ytNote">Plays in YouTube's own player, ads and all, so the artists still get paid. Noise and the session timer work on top; pulse and warmth can't reach it.</p>
+      </div>
     </div>
   </div>
 
@@ -363,6 +388,7 @@ legend { padding: 0 3px; }
       <div>
         <h3>Noise and sessions</h3>
         <p>The noise bed and session timer follow <a href="https://github.com/remvze/moodist" target="_blank" rel="noopener">Moodist</a>, an open-source ambient sound app. When a session ends, a soft bell plays and the music fades out.</p>
+        <p>YouTube mixes (Music menu) are <a href="https://www.youtube.com/@theFlowStateStudio" target="_blank" rel="noopener">Flow State Studio</a>'s focus playlists, played in YouTube's own player. The songs belong to their artists; the tracklists come from each video's description.</p>
       </div>
       <p class="note">The study found a modest effect, mostly in people with ADHD symptoms. Steady music with no surprises does most of the work. Everything is made in your browser: no samples and no network calls. Source and fork: <a href="https://github.com/mattseesass/quiet-engine" target="_blank" rel="noopener">GitHub</a>.</p>
     </div>
@@ -1782,12 +1808,127 @@ if (!MODES[S.mode]) S.mode = 'deep';
 if (!S.fx || typeof S.fx !== 'object') S.fx = {};
 TUNE = S.tune === 432 ? 432 : 440;
 const effBpm = id => Math.round((eng && eng.mode && eng.mode.id === id ? eng.mode : MODES[id]).bpm * (1 + fxFor(S, id).tempo / 100)); // a skipped-to track has its own tempo
-S.source = 'gen'; // files aren't remembered between visits
+if (S.source !== 'yt') S.source = 'gen'; // files aren't remembered between visits; a YouTube mix is
 const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
 
 let ctx = null, eng = null, playing = false, schedId = null, wake = null;
 let left = S.session * 60, elapsed = 0, lastTick = 0, ending = false;
 let tracks = [], trackIdx = 0;
+
+// YouTube mixes: Flow State Studio's focus playlists, played through YouTube's own embedded player (the API spoken over postMessage,
+// so no script has to load from YouTube). Each mix is { id, t: title, d: seconds, tr: [[start second, 'Artist - Title'], ...] }.
+const MIXES = [{"id":"y_0z-ikyh0U","t":"You’re Chasing the Flow State","d":3921,"tr":[[0,"KIRSSHE - Nightcrawler"],[171,".diedlonely x Edo - afterme"],[433,"LMB - Dissipate"],[669,"Insincere x SHXPE - N-E-O-N-S"],[858,"A Path Untold - Conciousness Aqueduct (Aphasia Remix)"],[1088,"PeriKardium x w/out - Offline Dreams"],[1306,"chaøs - last chance"],[1396,"ocxone - Singularity"],[1633,"Inhale - Drive"],[1806,"LMB - Nocturnal"],[1926,"Jai - Reticent"],[2097,"Progmalite - Abyss"],[2329,"Nocturnus - Laugh Instead"],[2573,"Øraeth - overload"],[2780,"Phelian - Burden Within"],[3102,"ocxone - Crater"],[3342,"ocxone - Desolate"],[3536,"Phelian - Nascence"],[3730,"Paleking - Dark Summer"]]},{"id":"7lGBeDWD-_4","t":"Time Is a Flat Circle. Make Today Count","d":4462,"tr":[[0,"VonnBoyd - Drogue"],[196,"Entme - How Deep Is You"],[382,"4Lienetic - Kronos"],[670,"Empathy - Monuments Of Hope"],[894,"Chaso - Timeless"],[1158,"Homeomorphic - Fluctuate"],[1348,"2 Senses - Soul Searching"],[1601,"Overture x Cruel Angel - When I need You Most"],[1714,"Alone - Azure (Original)"],[1963,"Overture - Sixty Four"],[2146,"Blaudiss - Eight Twenty Two"],[2324,"Code of Kassilid - Path RW"],[2560,"Exodynamix - Desolate night"],[2735,"Arnyd - Lustrous"],[2949,"Seven Eleven - Bug"],[3094,"Kamjove - Micro Management"],[3243,"Loner - Genuine Empathy"],[3384,"Andy Leech x Victoriya - Aerolith"],[3553,"Ellenual - Lostland"],[3752,"10GRI - Remote"],[3954,"Foxer - Night Train"],[4087,"Phelian - Origins"],[3674,"AK - Icicle"]]},{"id":"QAc1MnM1YAQ","t":"The Privilege of Potential","d":3684,"tr":[[0,"Zkave - At The Edge"],[214,"Chrypton - Left Behind"],[570,"Blackbird - Barren Lands"],[739,"Kip Clerk - Don't Stay Here"],[894,"Xavion - Widened Horizons"],[1159,"Quallmmusic - Pure"],[1271,"Overture - Scared of Change"],[1392,"AK - Sublime Weakness"],[1607,"4Lienetic - Feelings"],[1818,"Ferven - Better Days"],[2043,"Inhale - Recall"],[2243,"Evrdo - Today"],[2431,"Blut Own - Sleepless"],[2611,"AK - Who Would Have Known"],[2803,"Ptr - Blissful Moments"],[3109,"Kazuki - Soul"],[3317,"Oscuro - Exhale"],[3500,"Arnyd - Mesmerized"]]},{"id":"bhcYDRYNB8c","t":"This Company Won’t Build Itself","d":3866,"tr":[[0,"Elevation - Standley Gurvich"],[176,"Electrosky - Soundgo"],[345,"Lightyears - Akraa"],[482,"Last Cosmo - Nitewalk"],[639,"Starwave - Soungo"],[827,"Bleue Astrale - Boy From Nowhere"],[1009,"Diamond - Girl From Nowhere"],[1185,"Night Owl - Theo Aabel"],[1321,"Erebus - A.L.I.S.O.N"],[1536,"Analogue Pulsar - Virtua"],[1714,"Downtown Binary - Contact"],[1943,"Soare - Tibeauthetraveler"],[2189,"Drifting - oDDling"],[2355,"Satin - Hotel Pools"],[2553,"Portal - Akraa"],[2736,"Prismatic Waves - Nitewalk"],[2936,"Searching - Virtua"],[3092,"Orion - Protocols"],[3268,"Echodrift - VIQ"],[3459,"Void - oDDling"],[3600,"Deluge - GRAEDA"]]},{"id":"I3-cT3oHx2s","t":"Rewrite Your Story","d":3976,"tr":[[0,"Regrets - Blackbird"],[193,"Cold Attraction - AdamZero"],[353,"Discernment - Almost Vanished"],[616,"Broken - Lazarus Moment"],[966,"Travel - Opium Camp"],[1124,"Flowers In The Rain - Arda Leen x Nereus"],[1206,"Stay With Me - Oscuro"],[1357,"Sorry for Lying - Smokefishe"],[1629,"Introvert - Solve"],[1846,"Tidal - Duqa"],[2152,"Cold Front - Lynchobite"],[2393,"Extremely Far - Tiikk"],[2587,"Mirage - Blaudiss x Overtone"],[2666,"Recursion - Overture x Cruel Angel"],[2860,"Drowning - Aestheia"],[3012,"Crossway - 10GRI"],[3176,"Walk - VonnBoyd"],[3334,"Contradictions - Azaleh x SmokeFishe"],[3519,"Smoulder (Hajimari Remix) - Nymbus"]]},{"id":"aIbyceB8GOQ","t":"After Hours Ambition","d":3618,"tr":[[0,"Throwing Stars - Infinitum Official"],[297,"Spearmint - Dawncall"],[503,"Save Me - Oscuro"],[685,"Into Her Eyes - VonnBoyd"],[916,"Drift - Phelian"],[1045,"Natural Light - Foxer"],[1292,"Evaporate - BlauDisS"],[1629,"Distant - Tryptamind"],[1880,"The Bird - 591"],[2017,"Nightside - Almost Vanished"],[2220,"Heavy - Tiikk"],[2418,"Greed - VonnBoyd"],[2673,"Precious Little Things - Blackbird"],[2944,"Night Train - Blackbird"],[3156,"Meadows - Menual x Spaceouters"],[3415,"First Sign Of Light - Whikerms"]]},{"id":"yPoE79AzeYQ","t":"Midnight Focus: Building What Others Can’t Imagine","d":3768,"tr":[[0,"Arilines - Aloft"],[308,"Vonnboyd - Oblivion"],[514,"Lazarus Moment - Piece Of You"],[832,"Almost Vanished - Silentium"],[1131,"Aeon Waves - Stay"],[1443,"Fallileno - Contact"],[1709,"Himalia - Growing Upwards"],[2091,"Suerre - In Pursuit"],[2274,"ArrAy-P - The Last Snowy Night"],[2480,"Blackbird - Snow Flakes"],[2720,"Blaudiss - Eight Twenty Two"],[2896,"SAM Tahmid - Abyss"],[3142,"CMP - Those Days"],[3360,"Alivvve - Eternity"],[3570,"Blaudiss - Cannot Be Undone"]]}];
+const YT = 'https://www.youtube-nocookie.com';
+if (!Array.isArray(S.ytMine)) S.ytMine = [];
+if (!S.yt || typeof S.yt !== 'object') S.yt = { mix: MIXES[0].id, t: 0 };
+const allMixes = () => MIXES.concat(S.ytMine);
+const curMix = () => allMixes().find(m => m.id === S.yt.mix) || MIXES[0];
+const yt = { frame: null, ready: false, vid: null, t: 0, state: -1, hello: null, fade: null };
+function ytCmd(func, ...args) { if (yt.frame) yt.frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), YT); }
+function ytLoad(id, start, play) {
+  yt.vid = id; yt.t = start;
+  if (yt.frame && yt.ready) { ytCmd(play ? 'loadVideoById' : 'cueVideoById', { videoId: id, startSeconds: start }); return; }
+  if (yt.frame) yt.frame.remove();
+  const f = yt.frame = document.createElement('iframe'); yt.ready = false;
+  f.title = 'YouTube player'; f.allow = 'autoplay; encrypted-media; picture-in-picture'; f.referrerPolicy = 'strict-origin-when-cross-origin';
+  f.src = `${YT}/embed/${id}?enablejsapi=1&playsinline=1&rel=0&start=${Math.floor(start)}&autoplay=${play ? 1 : 0}&origin=${encodeURIComponent(location.origin)}`;
+  f.addEventListener('load', () => { // say hello until the player answers, like YouTube's own API script does
+    clearInterval(yt.hello); let n = 0;
+    yt.hello = setInterval(() => { if (yt.ready || ++n > 40) clearInterval(yt.hello); else f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), YT); }, 250);
+  });
+  $('#tv').appendChild(f);
+}
+const ytVol = () => Math.round(S.music);
+addEventListener('message', e => {
+  if (e.origin !== YT || !yt.frame || e.source !== yt.frame.contentWindow) return;
+  let d; try { d = JSON.parse(e.data); } catch (err) { return; }
+  const info = d.info && typeof d.info === 'object' ? d.info : {};
+  if (d.event === 'onReady') { yt.ready = true; ytCmd('setVolume', ytVol()); }
+  if (typeof info.currentTime === 'number') yt.t = info.currentTime;
+  const st = d.event === 'onStateChange' ? d.info : info.playerState;
+  if (typeof st === 'number' && st !== yt.state) ytState(st);
+  if (d.event === 'onError') $('#ytNote').textContent = 'YouTube won\'t play this video here' + (location.protocol === 'file:' ? '. Open the web version: mattseesass.github.io/quiet-engine' : ' (it may not allow embedding).');
+});
+function ytState(st) { // follow YouTube's own play and pause buttons too
+  yt.state = st;
+  if (S.source !== 'yt' || ending) return;
+  if (st === 1 && !playing) togglePlay(true);
+  else if (st === 2 && playing) togglePlay(true);
+  else if (st === 0) ytNextMix();
+}
+const ytIdx = () => { const tr = curMix().tr; let i = 0; while (i + 1 < tr.length && tr[i + 1][0] <= yt.t + 0.5) i++; return i; };
+function ytSeek(sec) { if (yt.vid === S.yt.mix && yt.ready) { ytCmd('seekTo', sec, true); yt.t = sec; } else ytLoad(S.yt.mix, sec, playing); }
+function ytNext() {
+  const tr = curMix().tr, i = ytIdx();
+  if (i + 1 < tr.length) ytSeek(tr[i + 1][0]); else ytNextMix();
+  syncYt();
+}
+function ytNextMix() {
+  const all = allMixes(), i = all.findIndex(m => m.id === S.yt.mix);
+  pickMix(all[(i + 1) % all.length].id, playing);
+}
+function pickMix(id, play) {
+  S.yt = { mix: id, t: 0 }; save();
+  ytLoad(id, 0, play); fillMixes(); syncUI();
+}
+function ytFadeOut(sec) { // session end: bring YouTube's volume down with the rest, then pause it
+  clearInterval(yt.fade); const v0 = ytVol(), t0 = performance.now();
+  yt.fade = setInterval(() => {
+    const k = Math.min(1, (performance.now() - t0) / (sec * 1000));
+    ytCmd('setVolume', Math.round(v0 * (1 - k)));
+    if (k >= 1) { clearInterval(yt.fade); ytCmd('pauseVideo'); }
+  }, 250);
+}
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const mixSel = $('#mix'), ytList = $('#ytTracks');
+function fillMixes() {
+  const opt = m => `<option value="${m.id}">${esc(m.t)}${m.d ? ' · ' + Math.round(m.d / 60) + ' min' : ''}</option>`;
+  mixSel.innerHTML = `<optgroup label="Flow State Studio">${MIXES.map(opt).join('')}</optgroup>` +
+    (S.ytMine.length ? `<optgroup label="Your mixes">${S.ytMine.map(opt).join('')}</optgroup>` : '');
+  mixSel.value = curMix().id;
+  const tr = curMix().tr.length ? curMix().tr : [[0, curMix().t]];
+  ytList.innerHTML = tr.map(([at, name], i) =>
+    `<button class="mode" role="radio" data-i="${i}" title="${esc(name)}"><span class="at">${fmt(at)}</span>${esc(name)}</button>`).join('');
+  $('#ytDel').hidden = !S.ytMine.some(m => m.id === S.yt.mix);
+  ytShown = -1;
+}
+mixSel.addEventListener('change', () => pickMix(mixSel.value, playing));
+ytList.addEventListener('click', e => {
+  const b = e.target.closest('.mode'); if (!b) return;
+  const tr = curMix().tr; ytSeek(tr.length ? tr[+b.dataset.i][0] : 0);
+  if (!playing) togglePlay(); else syncYt();
+});
+ytList.addEventListener('keydown', e => {
+  const d = { ArrowDown: 1, ArrowUp: -1 }[e.key]; if (!d) return;
+  e.preventDefault(); const bs = ytList.querySelectorAll('.mode'), i = [...bs].indexOf(document.activeElement);
+  bs[Math.max(0, Math.min(bs.length - 1, (i < 0 ? ytIdx() : i) + d))].focus();
+});
+let ytShown = -1;
+function syncYt() { // highlight the song that's playing now, and remember where we are
+  if (S.source !== 'yt') return;
+  const i = ytIdx(), tr = curMix().tr;
+  ytList.querySelectorAll('.mode').forEach((b, j) => { const on = j === i; b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1; });
+  if (i !== ytShown) { ytShown = i; const b = ytList.children[i]; if (b) b.scrollIntoView({ block: 'nearest' }); }
+  if (Math.abs(yt.t - S.yt.t) > 5) { S.yt.t = Math.floor(yt.t); save(); }
+  $('#chord').textContent = tr.length ? `${i + 1}/${tr.length}` : '--';
+  syncTitle();
+}
+// Add a mix: a YouTube link plus, if pasted, its description, whose timestamped lines become the tracklist
+$('#ytAdd').addEventListener('click', async () => {
+  const url = $('#ytUrl').value.trim(), m = url.match(/(?:v=|youtu\.be\/|embed\/|shorts\/|live\/)([\w-]{11})/) || url.match(/^([\w-]{11})$/);
+  if (!m) { $('#ytNote').textContent = 'That doesn\'t look like a YouTube video link.'; $('#ytUrl').focus(); return; }
+  const id = m[1];
+  if (allMixes().some(x => x.id === id)) { pickMix(id, playing); return; }
+  const tr = $('#ytList').value.split(/\r?\n/).map(l => l.match(/^\s*[\[(]?((?:\d{1,2}:)?\d{1,2}:\d{2})[\])]?\s*[-–—.:)]?\s*(.+)$/))
+    .filter(Boolean).map(x => [x[1].split(':').reduce((a, n) => a * 60 + +n, 0), x[2].trim()]).sort((a, b) => a[0] - b[0]);
+  let t = 'Your mix ' + (S.ytMine.length + 1);
+  try { const r = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent('https://www.youtube.com/watch?v=' + id)}`); if (r.ok) t = (await r.json()).title || t; } catch (err) {}
+  S.ytMine.push({ id, t, tr }); $('#ytUrl').value = $('#ytList').value = '';
+  $('#ytNote').textContent = tr.length ? `Added with ${tr.length} songs.` : 'Added. No tracklist found, so Next track goes to the next mix.';
+  pickMix(id, playing);
+});
+$('#ytDel').addEventListener('click', () => { S.ytMine = S.ytMine.filter(m => m.id !== S.yt.mix); pickMix(MIXES[0].id, playing); });
 
 function fmt(sec) { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, s = sec % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0'); }
 
@@ -1833,7 +1974,7 @@ function setMode(id) {
 
 function bindSlider(id) {
   const el = $('#' + id), out = $('#' + id + 'Out');
-  el.addEventListener('input', () => { S[id] = +el.value; out.value = el.value; save(); if (eng) eng.set(id, S[id]); if (id === 'pulse') syncMeta(); });
+  el.addEventListener('input', () => { S[id] = +el.value; out.value = el.value; save(); if (eng) eng.set(id, S[id]); if (id === 'pulse') syncMeta(); if (id === 'music') ytCmd('setVolume', ytVol()); });
 }
 ['music', 'pulse', 'warmth', 'noise'].forEach(bindSlider);
 
@@ -1846,11 +1987,14 @@ $('#src').addEventListener('change', e => {
 $('#pulseOn').addEventListener('change', e => { S.pulseOn = e.target.checked; save(); if (eng) eng.set('pulseOn', S.pulseOn); syncUI(); });
 
 function setSource(v) {
-  S.source = v;
+  const was = S.source;
+  S.source = v; save();
   if (eng) {
     eng.set('source', v);
     if (v === 'tracks') playTrack(trackIdx); else eng.stopTrack();
   }
+  if (v === 'yt') { if (yt.vid !== S.yt.mix) ytLoad(S.yt.mix, S.yt.t, playing); else if (playing) ytCmd('playVideo'); }
+  else if (was === 'yt') ytCmd('pauseVideo');
   syncUI();
 }
 $('#fileBtn').addEventListener('click', () => $('#file').click());
@@ -1860,9 +2004,10 @@ $('#file').addEventListener('change', e => {
   tracks = files; trackIdx = 0; e.target.value = '';
   setSource('tracks');
 });
-function skip() { // generated: a fresh track in the same mode; your files: the next file
+function skip() { // generated: a fresh track in the same mode; YouTube: the next song in the mix; your files: the next file
   if (!eng || !playing) return;
-  if (S.source === 'tracks') { if (tracks.length) { trackIdx = (trackIdx + 1) % tracks.length; playTrack(trackIdx); syncUI(); } }
+  if (S.source === 'yt') ytNext();
+  else if (S.source === 'tracks') { if (tracks.length) { trackIdx = (trackIdx + 1) % tracks.length; playTrack(trackIdx); syncUI(); } }
   else { eng.regenerate(); newTrack(); syncUI(); }
 }
 $('#skip').addEventListener('click', skip);
@@ -1978,7 +2123,9 @@ document.querySelectorAll('.dlg [data-close]').forEach(b => b.addEventListener('
 document.addEventListener('pointerdown', e => { if (openWin && !openWin.contains(e.target) && !e.target.closest('.menubar')) hideWin(); });
 const ALT = { KeyT: 'tune', KeyB: 'bw', KeyI: 'fine', KeyM: 'tracks', KeyH: 'help' };
 
-async function togglePlay() {
+function ytPlay() { clearInterval(yt.fade); ytCmd('setVolume', ytVol()); if (yt.ready && yt.vid === S.yt.mix) ytCmd('playVideo'); else ytLoad(S.yt.mix, S.yt.t, true); }
+async function togglePlay(fromYt) { // fromYt: YouTube's own button was pressed, so don't send it back
+  const tube = S.source === 'yt' && fromYt !== true;
   if (!ctx) {
     ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'playback' });
     eng = new Engine(ctx, S);
@@ -1986,12 +2133,15 @@ async function togglePlay() {
     eng.scheduleUntil(ctx.currentTime + 2.5);
     schedId = setInterval(() => eng.scheduleUntil(ctx.currentTime + 2.5), 200);
     if (S.source === 'tracks') playTrack(trackIdx);
+    if (tube) ytPlay();
     playing = true;
   } else if (playing) {
     playing = false; eng.fade(0, 0.3);
+    if (tube) ytCmd('pauseVideo');
     setTimeout(() => { if (!playing) ctx.suspend(); }, 380);
   } else {
     if (ending || (S.session && left <= 0)) { left = S.session * 60; elapsed = 0; ending = false; }
+    if (tube) ytPlay();
     await ctx.resume(); eng.fade(1, 1.2); playing = true;
   }
   lastTick = performance.now();
@@ -2015,12 +2165,12 @@ setInterval(() => {
   if (S.session) {
     left -= dt;
     if (left <= 0 && !ending) {
-      ending = true; eng.bell(); eng.fade(0, 12);
+      ending = true; eng.bell(); eng.fade(0, 12); if (S.source === 'yt') ytFadeOut(12);
       setTimeout(() => { if (ending) { playing = false; ctx.suspend(); syncUI(); syncTime(); } }, 12000);
     }
   }
   syncTime();
-  if (S.source === 'gen') syncMeta();
+  if (S.source === 'gen') syncMeta(); else if (S.source === 'yt') syncYt();
 }, 500);
 
 function syncTime() {
@@ -2034,6 +2184,11 @@ function syncTime() {
   }
 }
 function syncMeta() {
+  if (S.source === 'yt') { // the chord slot shows the song number instead (set in syncYt)
+    $('#bpm').hidden = true; $('#chord').hidden = false;
+    $('#pulseTxt').textContent = 'No pulse'; $('#pulseTxt').title = 'The pulse can\'t reach YouTube\'s player';
+    $('#keyTxt').textContent = 'YouTube'; return;
+  }
   const m = MODES[S.mode], mine = S.source === 'tracks' && tracks.length;
   const bpm = effBpm(S.mode), pulseOn = S.pulseOn && S.pulse;
   const c = !mine && eng && playing && eng.currentChord(ctx.currentTime);
@@ -2046,9 +2201,10 @@ function syncMeta() {
   $('#keyTxt').textContent = mine ? 'Your tracks' : c ? c.key : spell(pc, m.minor) + (m.minor ? ' minor' : ' major');
 }
 function syncTitle() {
-  const mine = S.source === 'tracks' && tracks.length, name = mine ? tracks[trackIdx].name.replace(/\.[^.]+$/, '') : trackName;
+  const mine = S.source === 'tracks' && tracks.length, tube = S.source === 'yt', mx = curMix(), i = ytIdx();
+  const name = tube ? (mx.tr.length ? mx.tr[i][1] : mx.t) : mine ? tracks[trackIdx].name.replace(/\.[^.]+$/, '') : trackName;
   $('#winTitle').textContent = 'Quiet Engine - ' + name;
-  const t = mine ? `*** ${name} *** Your tracks · ${trackIdx + 1} of ${tracks.length} ***` : `*** ${name} *** ${MODES[S.mode].name} · track ${trackNo} ***`;
+  const t = tube ? `*** ${name} *** ${mx.t}${mx.tr.length ? ` · ${i + 1} of ${mx.tr.length}` : ''} ***` : mine ? `*** ${name} *** Your tracks · ${trackIdx + 1} of ${tracks.length} ***` : `*** ${name} *** ${MODES[S.mode].name} · track ${trackNo} ***`;
   const next = (t + '   ').padEnd(56, ' ');
   if (next !== marqueeText) { marqueeText = next; marqueeAt = 0; drawMarquee(); }
 }
@@ -2065,12 +2221,17 @@ function syncUI() {
   $('#tune').value = String(S.tune); $('#bw').value = S.bw; $('#bwLevelRow').hidden = S.bw === 'off';
   $('#bwLevel').value = S.bwLevel; $('#bwLevelOut').value = S.bwLevel;
   $('#skip').disabled = !playing;
-  $('#skip').title = S.source === 'tracks' ? 'Next track (N)' : 'New track (N): new sounds, beat, tempo and key';
+  const tube = S.source === 'yt';
+  $('#skip').title = tube ? 'Next song in the mix (N)' : S.source === 'tracks' ? 'Next track (N)' : 'New track (N): new sounds, beat, tempo and key';
+  $('#tv').hidden = !tube; $('#spec').hidden = tube;
+  $('#modeLbl').textContent = tube ? 'Tracklist' : 'Mode'; $('.mixsel').hidden = !tube; modesEl.hidden = tube; ytList.hidden = !tube;
+  $('#paneYt').hidden = !tube; $('#paneTracks').hidden = tube;
+  for (const id of ['pulse', 'warmth', 'pulseOn']) { const el = $('#' + id); el.disabled = tube; el.closest('.slider').classList.toggle('off', tube); }
   syncFine();
   $('#play').setAttribute('aria-label', playing ? 'Pause' : 'Play'); $('#playTxt').textContent = playing ? 'Pause' : 'Play';
   $('#icoPlay').toggleAttribute('hidden', playing); $('#icoPause').toggleAttribute('hidden', !playing); // SVG has no .hidden property
   $('#stereo').className = playing ? 'on' : 'off';
-  $('#status').textContent = playing ? (S.source === 'tracks' ? 'Playing your tracks' : 'Playing ' + MODES[S.mode].name) : ctx ? 'Paused' : 'Ready';
+  $('#status').textContent = playing ? (tube ? 'Playing ' + curMix().t : S.source === 'tracks' ? 'Playing your tracks' : 'Playing ' + MODES[S.mode].name) : ctx ? 'Paused' : 'Ready';
   $('#tuneTxt').textContent = 'A = ' + S.tune + ' Hz';
   const bwOpt = $('#bw').selectedOptions[0];
   $('#bwTxt').hidden = S.bw === 'off'; $('#bwTxt').textContent = S.bw === 'off' ? '' : bwOpt.textContent.split(' · ')[0] + (S.bw[0] === 'b' ? ' binaural' : ' pulsed');
@@ -2079,7 +2240,7 @@ function syncUI() {
     $('#trackCount').textContent = tracks.length + (tracks.length === 1 ? ' track' : ' tracks');
     $('#trackNow').textContent = S.source === 'tracks' ? 'Now: ' + tracks[trackIdx].name : 'Pick My tracks above to play them';
   }
-  syncTitle(); syncMeta();
+  syncTitle(); syncMeta(); syncYt();
 }
 
 /* ---------- spectrum: Winamp-style segmented bars on the LCD ---------- */
@@ -2130,8 +2291,10 @@ function draw() {
 }
 
 newTrack(true);
-{ const sel = modesEl.querySelector(`[data-id="${S.mode}"]`); modesEl.scrollTop = sel.offsetTop - 40; } // show the saved mode
+fillMixes();
+if (S.source === 'yt') ytLoad(S.yt.mix, S.yt.t, false); // cued where you left off
 syncUI(); syncTime();
+{ const sel = modesEl.querySelector(`[data-id="${S.mode}"]`); modesEl.scrollTop = sel.offsetTop - 40; } // show the saved mode
 requestAnimationFrame(draw);
 window.QuietEngine = { renderOffline, MODES };
 </script>
