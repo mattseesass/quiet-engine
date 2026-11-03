@@ -161,8 +161,10 @@ legend { padding: 0 3px; }
 .field > span:first-child { height: 16px; display: flex; align-items: center; }
 
 /* Mode list */
-.modebox { display: flex; flex-direction: column; min-width: 0; padding: 14px 10px 10px; }
-.modes { flex: 1 1 auto; background: var(--field); padding: 2px; display: flex; flex-direction: column; }
+.modebox { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 14px 10px 10px; }
+.modes { position: relative; flex: 1 1 0; min-height: 0; overflow-y: auto; background: var(--field); padding: 2px; display: flex; flex-direction: column; }
+.modes > * { flex: none; }
+@media (max-width: 760px) { .modes { flex: none; max-height: 320px; } }
 .modes-sub { padding: 3px 6px; background: var(--lt); font-weight: bold; }
 .mode { border: 0; background: none; text-align: left; padding: 4px 6px 4px 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
 .mode:hover { background: var(--lt); }
@@ -413,6 +415,20 @@ const BALKAN = [[E.i, E.iv, H5, E.i], [E.i, E.VI, E.iv, H5], [E.i, E.VII, E.VI, 
 const DARK = [[E.i, E.i, E.VI, E.VII], [E.i, E.iv, E.i, E.VI], [E.i, E.VII, E.iv, E.i]];
 const D = { I: tri(0, 0), iii: tri(4, 1), IV: tri(5, 0), V: tri(7, 0), vi: tri(9, 1) };
 const DREAM = [[D.I, D.V, D.vi, D.IV], [D.vi, D.IV, D.I, D.V], [D.I, D.iii, D.IV, D.IV], [D.IV, D.V, D.iii, D.vi]];
+const CHIP = [[D.I, D.V, D.vi, D.IV], [D.vi, D.IV, D.V, D.I], [D.I, D.vi, D.IV, D.V], [D.IV, D.I, D.V, D.vi]];
+// Jazz and soul loops from the 9th chords above: ii–V–I in major, i–iv and VI–III moves in minor.
+const JAZZ = [[MAJOR[1], MAJOR[4], MAJOR[0], MAJOR[0]], [MAJOR[0], MAJOR[5], MAJOR[1], MAJOR[4]], [MAJOR[3], MAJOR[2], MAJOR[1], MAJOR[0]], [MAJOR[0], MAJOR[3], MAJOR[1], MAJOR[4]]];
+const SOUL = [[MINOR[0], MINOR[2]], [MINOR[0], MINOR[4], MINOR[2], MINOR[3]], [MINOR[4], MINOR[1], MINOR[2], MINOR[0]], [MINOR[0], MINOR[5], MINOR[4], MINOR[3]]];
+const DUB = [[MINOR[0]], [MINOR[0], MINOR[2]], [MINOR[0], MINOR[4]]];
+// Disco: 7th chords in a major key (V7's 7th is the key's 4th, so they stay in the key too).
+const s7 = (deg, q, iv) => ({ deg, q, iv, w: 1 });
+const DI = { I: s7(0, 'maj7', [0, 7, 11, 16, 19]), ii: s7(2, 'm7', [0, 7, 10, 15, 19]), iii: s7(4, 'm7', [0, 7, 10, 15, 19]),
+  IV: s7(5, 'maj7', [0, 7, 11, 16, 19]), V: s7(7, '7', [0, 7, 10, 16, 19]), vi: s7(9, 'm7', [0, 7, 10, 15, 19]) };
+const DISCO = [[DI.vi, DI.ii, DI.V, DI.I], [DI.I, DI.vi, DI.ii, DI.V], [DI.IV, DI.iii, DI.ii, DI.I], [DI.ii, DI.V, DI.I, DI.vi]];
+// Techno barely moves; phonk borrows the flat 2nd (phrygian) for its menace.
+const TECHNO = [[E.i, E.i, E.i, E.i], [E.i, E.i, E.VI, E.i], [E.i, E.iv, E.i, E.i], [E.i, E.i, E.VII, E.VI]];
+const B2 = tri(1, 0);
+const PHONK = [[E.i, E.i, E.VI, E.VII], [E.i, B2, E.i, E.VI], [E.i, E.iv, E.VI, B2]];
 // Accordion phrases: two bars of 16ths as [start, length], mostly held notes with a few quick passing notes.
 const RHYTHMS = [
   [[0, 6], [6, 2], [8, 8], [16, 6], [22, 2], [24, 8]],
@@ -454,49 +470,105 @@ const MODES = {
            layers: { pad: 1, keys: 0.6, bass: 0.6, arp: 0 }, keyVoices: 3, keyGap: [8, 24], keyReg: [55, 72] },
 
   // Genre modes. Patterns are one bar of 16th notes: X accent, x hit, o ghost, . rest.
-  synth: { id: 'synth', genre: true, name: 'Synthwave', use: 'Neon arps, gated snares', bpm: 100, div: 8, pulse: 45, minor: true,
+  synth: { id: 'synth', genre: true, gain: 1.12, group: 'Club', name: 'Synthwave', use: 'Neon arps, gated snares', bpm: 100, div: 8, pulse: 45, minor: true,
            keys: [45, 47, 52], progs: EPIC, chordBars: 2, wave: 'supersaw', cut: 2200, padAtt: 0.4, padRel: 1.2, padVel: 0.022, strum: 0,
            layers: { pad: 0.9, keys: 0, bass: 1, arp: 0.8 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 80], duck: 0.35,
-           groove: { kick: 'x...x...x...x...', kickType: 'punch', snare: '....x.......x...', snareType: 'gated', hat: '..x...x...x...x.' },
+           groove: { kick: 'x...x...x...x...', kickType: 'punch', snare: '....x.......x...', snareType: 'gated', hat: '..x...x...x...x.', fill: 'gated' },
            bass: { type: 'octave', pat: 'x.x.x.x.x.x.x.x.' }, lead: { type: 'arp', pat: 'xxxxxxxxxxxxxxxx', lo: 64, hi: 84 } },
-  dnb:   { id: 'dnb', genre: true, name: 'Drum & Bass', use: 'Liquid rollers, Reese bass', bpm: 174, div: 6, pulse: 45, minor: true,
+  dnb:   { id: 'dnb', genre: true, gain: 0.69, group: 'Club', name: 'Drum & Bass', use: 'Liquid rollers, Reese bass', bpm: 174, div: 6, pulse: 45, minor: true,
            keys: [45, 50, 52], chords: MINOR, chordBars: 4, wave: 'sawtooth', cut: 1600, padAtt: 1, padRel: 2, padVel: 0.026,
            layers: { pad: 0.8, keys: 0.6, bass: 1, arp: 0 }, keyVoices: 3, keyGap: [6, 18], keyReg: [62, 81], duck: 0.2,
-           groove: { kick: 'x.........x.....', kickType: 'dnb', snare: '....X.......X...', ghost: '.......o.......o', snareType: 'dnb', hat: 'o.x.o.x.o.x.o.x.' },
+           groove: { kick: 'x.........x.....', kickType: 'dnb', snare: '....X.......X...', ghost: '.......o.......o', snareType: 'dnb', hat: 'o.x.o.x.o.x.o.x.', fill: 'snare' },
            bass: { type: 'reese' } },
-  house: { id: 'house', genre: true, name: 'Outsider House', use: 'Dusty, swung, lo-fi chords', bpm: 122, div: 8, pulse: 45, minor: true,
+  house: { id: 'house', genre: true, gain: 0.89, group: 'Chill', name: 'Outsider House', use: 'Dusty, swung, lo-fi chords', bpm: 122, div: 8, pulse: 45, minor: true,
            keys: [45, 48, 50, 53], progs: LOFI, chordBars: 2, wave: 'triangle', cut: 1300, padAtt: 0.5, padRel: 1.5, padVel: 0.03, strum: 0.02,
            layers: { pad: 0.8, keys: 0.8, bass: 1, arp: 0 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 76], duck: 0.3, tone: 5200, dust: true,
-           groove: { kick: 'x...x...x...x...', kickType: 'soft', snare: '....x.......x...', snareType: 'lofi', hat: '.o.o.o.o.o.o.o.o', ohat: '..x...x...x...x.', swing: 0.6 },
+           groove: { kick: 'x...x...x...x...', kickType: 'soft', snare: '....x.......x...', snareType: 'lofi', hat: '.o.o.o.o.o.o.o.o', ohat: '..x...x...x...x.', swing: 0.6,
+                    shaker: 'xoooxoooxoooxooo', rim: '.......x......x.' },
            bass: { type: 'pluck', pat: 'x.....x...x..x..' }, lead: { type: 'stab', pat: '..x..x....x..x..', lo: 60, hi: 76 } },
-  hard:  { id: 'hard', genre: true, name: 'Hardstyle 2010', use: 'Tuned kicks, euphoric leads', bpm: 150, div: 6, pulse: 45, minor: true,
+  hard:  { id: 'hard', genre: true, gain: 0.73, group: 'Club', name: 'Hardstyle 2010', use: 'Tuned kicks, euphoric leads', bpm: 150, div: 6, pulse: 45, minor: true,
            keys: [45, 47, 49, 50], progs: EPIC, chordBars: 2, wave: 'supersaw', cut: 2600, padAtt: 0.2, padRel: 0.8, padVel: 0.018, strum: 0,
            layers: { pad: 0.8, keys: 0, bass: 0, arp: 1 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 80], duck: 0.55,
-           groove: { kick: 'x...x...x...x...', kickType: 'hard', snare: '....x.......x...', snareType: 'clap', ohat: '..x...x...x...x.', roll: true },
+           groove: { kick: 'x...x...x...x...', kickType: 'hard', snare: '....x.......x...', snareType: 'clap', ohat: '..x...x...x...x.', roll: true, fill: 'snare' },
            lead: { type: 'saw', pat: 'x.x.x.xxx.x.x.x.', lo: 67, hi: 86, len: 0.2 } },
-  trance:{ id: 'trance', genre: true, name: 'Trance', use: 'Uplifting, rolling bass, supersaws', bpm: 138, div: 8, pulse: 45, minor: true,
+  trance:{ id: 'trance', genre: true, group: 'Club', name: 'Trance', use: 'Uplifting, rolling bass, supersaws', bpm: 138, div: 8, pulse: 45, minor: true,
            keys: [45, 47, 50, 52], progs: EPIC, chordBars: 2, wave: 'supersaw', cut: 2600, padAtt: 0.3, padRel: 1, padVel: 0.02, strum: 0,
-           layers: { pad: 0.85, keys: 0, bass: 1, arp: 0.9 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 80], duck: 0.6,
-           groove: { kick: 'x...x...x...x...', kickType: 'punch', snare: '....x.......x...', snareType: 'clap', hat: 'oo.ooo.ooo.ooo.o', ohat: '..x...x...x...x.', roll: true },
+           layers: { pad: 0.85, keys: 0, bass: 1, arp: 0.9 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 80], duck: 0.6, gate: 'xx.xx.x.xx.xx.x.',
+           groove: { kick: 'x...x...x...x...', kickType: 'punch', snare: '....x.......x...', snareType: 'clap', hat: 'oo.ooo.ooo.ooo.o', ohat: '..x...x...x...x.', roll: true, fill: 'snare' },
            bass: { type: 'roll', pat: '.xxx.xxx.xxx.xxx' }, lead: { type: 'saw', pat: 'x.xx.x.xx.xx.x.x', lo: 64, hi: 81, len: 0.12 } },
   // Sound design for the next three was matched to reference songs (2009 Romanian house, old-school electro, dreamy digicore);
   // the melodies are generated fresh. introPlays: what the first 8 bars hold ('lead' alone, 'bass' alone, or 'tops' = no kick or bass).
-  balkan:{ id: 'balkan', genre: true, name: 'Balkan House', use: 'Accordion leads, latin bounce', bpm: 126, div: 8, pulse: 45, minor: true,
+  balkan:{ id: 'balkan', genre: true, group: 'Club', name: 'Balkan House', use: 'Accordion leads, latin bounce', bpm: 126, div: 8, pulse: 45, minor: true,
            keys: [45, 47, 49, 50, 52], progs: BALKAN, chordBars: 2, wave: 'sawtooth', cut: 1500, padAtt: 0.3, padRel: 1, padVel: 0.016, strum: 0,
            layers: { pad: 0.7, keys: 0, bass: 1, arp: 1 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 80], duck: 0.4, introPlays: 'lead', sweepDown: true,
            groove: { kick: 'x...x...x...x...', kickType: 'punch', snare: '....x.......x...', snareType: 'clap', hat: 'oo.ooo.ooo.ooo.o', ohat: '..x...x...x...x.', perc: '...x..X....x.X..' },
            bass: { type: 'pluck', pat: 'x..x..x...x..x..' }, lead: { type: 'accordion', lo: 57, hi: 74 } },
-  oldschool:{ id: 'oldschool', genre: true, name: 'Old School', use: 'Stutter bass, dark rave', bpm: 120, div: 8, pulse: 45, minor: true,
+  oldschool:{ id: 'oldschool', genre: true, gain: 1.17, group: 'Club', name: 'Old School', use: 'Stutter bass, dark rave', bpm: 120, div: 8, pulse: 45, minor: true,
            keys: [48, 49, 50, 52], progs: DARK, chordBars: 2, wave: 'supersaw', cut: 2000, padAtt: 0.8, padRel: 1.5, padVel: 0.03, strum: 0,
            layers: { pad: 0.8, keys: 0, bass: 1, arp: 0 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 80], duck: 0.35, introPlays: 'bass', introBare: true,
            groove: { kick: 'x...x...x...x...', kickType: 'punch', snare: '....x.......x...', snareType: 'clap', hat: '..x...x...x...x.', roll: true },
            bass: { type: 'stutter' } },
-  dream: { id: 'dream', genre: true, name: 'Dreamcore', use: 'Wide sine leads, soft bounce', bpm: 120, div: 8, pulse: 45, minor: false,
+  dream: { id: 'dream', genre: true, gain: 1.1, group: 'Chill', name: 'Dreamcore', use: 'Wide sine leads, soft bounce', bpm: 120, div: 8, pulse: 45, minor: false,
            keys: [47, 49, 52, 54], progs: DREAM, chordBars: 2, wave: 'triangle', cut: 1800, padAtt: 0.6, padRel: 1.6, padVel: 0.024, strum: 0.015,
            layers: { pad: 0.8, keys: 0, bass: 1, arp: 1 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 80], duck: 0.25, introPlays: 'tops',
            groove: { kick: 'x.........x.....', kickType: 'soft', snare: '....x.......x...', snareType: 'clap', hat: 'x.x.x.x.x.x.x.x.', hatRoll: true },
            bass: { type: 'glide', pat: 'x.....x...x.....' }, lead: { type: 'dream', pat: 'x.xxx.x.xx.x.x..', lo: 61, hi: 81 } },
+
+  // Stab leads play chords on the keys layer; `voice` picks the instrument (fm e-piano by default), `dec` how long it rings.
+  lofi:  { id: 'lofi', genre: true, group: 'Chill', name: 'Lo-fi Hip Hop', use: 'Dusty Rhodes, lazy boom-bap', bpm: 84, div: 8, pulse: 40, minor: false,
+           keys: [48, 50, 53, 55], progs: JAZZ, chordBars: 1, wave: 'triangle', cut: 1100, padAtt: 0.5, padRel: 1.4, padVel: 0.014, strum: 0.03,
+           layers: { pad: 0.5, keys: 0.9, bass: 1, arp: 0 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 77], duck: 0.12, tone: 4400, dust: true,
+           groove: { kick: 'x.......x.x.....', kickType: 'soft', snare: '....x.......x...', ghost: '...........o...o', snareType: 'lofi', hat: 'x.x.x.x.x.x.x.x.', swing: 0.64, fill: 'none' },
+           bass: { type: 'upright', pat: 'x.....x...x.....' }, lead: { type: 'stab', pat: 'x.....x.....x...', lo: 57, hi: 76, dec: 1.1, strum: 0.012 } },
+  bossa: { id: 'bossa', genre: true, group: 'Chill', name: 'Bossa Lounge', use: 'Nylon guitar, rim clicks, soft bass', bpm: 126, div: 8, pulse: 40, minor: false,
+           keys: [48, 50, 52, 53], progs: JAZZ, chordBars: 2, wave: 'triangle', cut: 1000, padAtt: 1, padRel: 2, padVel: 0.011,
+           layers: { pad: 0.4, keys: 1, bass: 1, arp: 0 }, keyVoices: 0, keyGap: [8, 8], keyReg: [57, 74], duck: 0.05, tone: 7500,
+           groove: { kick: 'x......xx.......', kickType: 'soft', rim: 'x..x..x...x..x..', shaker: 'xoxoxoxoxoxoxoxo', fill: 'none' },
+           bass: { type: 'upright', pat: 'x.....x.x.....x.', fifths: true }, lead: { type: 'stab', voice: 'nylon', pat: 'x..x..x...xx..x.', lo: 55, hi: 74, strum: 0.018 } },
+  dub:   { id: 'dub', genre: true, group: 'Chill', name: 'Dub Techno', use: 'Echoing chord stabs, deep haze', bpm: 120, div: 8, pulse: 40, minor: true,
+           keys: [45, 48, 50, 52], progs: DUB, chordBars: 4, wave: 'sine', cut: 700, padAtt: 3, padRel: 4, padVel: 0.02,
+           layers: { pad: 0.4, keys: 1, bass: 1, arp: 0 }, keyVoices: 0, keyGap: [8, 8], keyReg: [57, 72], duck: 0.25, echoFb: 0.56, tone: 7000, dust: true,
+           groove: { kick: 'x...x...x...x...', kickType: 'soft', hat: '..o...o...o...o.', shaker: 'oooooooooooooooo', rim: '............x...', fill: 'none' },
+           bass: { type: 'glide', pat: 'x.....x.....x...' }, lead: { type: 'stab', voice: 'dub', pat: '...x......x.....', lo: 57, hi: 72 } },
+  piano: { id: 'piano', genre: true, gain: 0.84, group: 'Chill', name: 'Amapiano', use: 'Log drum bass, shakers, jazzy keys', bpm: 113, div: 8, pulse: 45, minor: true,
+           keys: [45, 47, 48, 50, 52], progs: SOUL, chordBars: 2, wave: 'triangle', cut: 1300, padAtt: 0.6, padRel: 1.5, padVel: 0.014,
+           layers: { pad: 0.5, keys: 0.9, bass: 1, arp: 0 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 79], duck: 0.2,
+           groove: { kick: 'x...x...x...x...', kickType: 'soft', snare: '....o.......o...', snareType: 'lofi', rim: '...x..x....x..x.', shaker: 'xoxxxoxxxoxxxoxx', perc: '..x....x..X.....', swing: 0.56, fill: 'none' },
+           bass: { type: 'log', pat: '..x..x..x.x...x.' }, lead: { type: 'stab', pat: 'x.....x...x.....', lo: 60, hi: 79, dec: 0.9, strum: 0.008 } },
+  deephouse: { id: 'deephouse', genre: true, group: 'Club', name: 'Deep House', use: 'Organ stabs, warm bassline', bpm: 122, div: 8, pulse: 45, minor: true,
+           keys: [45, 47, 48, 50], progs: SOUL, chordBars: 2, wave: 'sawtooth', cut: 1200, padAtt: 0.6, padRel: 1.5, padVel: 0.014,
+           layers: { pad: 0.6, keys: 0.9, bass: 1, arp: 0 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 76], duck: 0.35,
+           groove: { kick: 'x...x...x...x...', kickType: 'punch', snare: '....x.......x...', snareType: 'clap', hat: '.o.o.o.o.o.o.o.o', ohat: '..x...x...x...x.', shaker: 'oxoxoxoxoxoxoxox', swing: 0.56 },
+           bass: { type: 'pluck', pat: '..x...x.x.x...x.' }, lead: { type: 'stab', voice: 'organ', pat: '..x...x...x..x..', lo: 60, hi: 76 } },
+  garage:{ id: 'garage', genre: true, gain: 1.14, group: 'Club', name: 'UK Garage', use: 'Shuffled 2-step, sub bass', bpm: 132, div: 6, pulse: 45, minor: true,
+           keys: [45, 47, 50, 52], progs: SOUL, chordBars: 2, wave: 'sawtooth', cut: 1400, padAtt: 0.3, padRel: 1, padVel: 0.012,
+           layers: { pad: 0.5, keys: 0.9, bass: 1, arp: 0 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 76], duck: 0.35,
+           groove: { kick: 'x.........x.....', kickType: 'punch', snare: '....x.......x...', snareType: 'clap', hat: '..x...x...x...x.', shaker: 'oxooxoooxooxoooo', rim: '.......x.....x..', swing: 0.66, fill: 'snare' },
+           bass: { type: 'glide', pat: 'x.....x...x..x..' }, lead: { type: 'stab', pat: '..x..x....x..x..', lo: 60, hi: 76, dec: 0.25 } },
+  disco: { id: 'disco', genre: true, gain: 1.1, group: 'Club', name: 'Nu-Disco', use: 'Octave bass, funk guitar, strings', bpm: 118, div: 8, pulse: 45, minor: false,
+           keys: [48, 50, 52, 53, 55], progs: DISCO, chordBars: 1, wave: 'sawtooth', cut: 2400, padAtt: 0.25, padRel: 0.8, padVel: 0.013, strum: 0,
+           layers: { pad: 0.7, keys: 0.9, bass: 1, arp: 0 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 79], duck: 0.35,
+           groove: { kick: 'x...x...x...x...', kickType: 'punch', snare: '....x.......x...', snareType: 'clap', hat: 'xoxoxoxoxoxoxoxo', ohat: '..x...x...x...x.', swing: 0.54 },
+           bass: { type: 'octave', pat: 'x.x.x.x.x.x.x.x.' }, lead: { type: 'stab', voice: 'chop', pat: '..x.x..x.ox.x..x', lo: 60, hi: 79, strum: 0.006 } },
+  acid:  { id: 'acid', genre: true, gain: 0.81, group: 'Club', name: 'Acid Techno', use: 'Squelchy 303 line, rolling kick', bpm: 132, div: 6, pulse: 45, minor: true,
+           keys: [45, 47, 48, 50, 52], progs: TECHNO, chordBars: 2, wave: 'square', cut: 900, padAtt: 2, padRel: 3, padVel: 0.01,
+           layers: { pad: 0.4, keys: 0, bass: 1, arp: 0 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 76], duck: 0.3,
+           groove: { kick: 'x...x...x...x...', kickType: 'techno', snare: '....x.......x...', snareType: 'clap', hat: 'xoxoxoxoxoxoxoxo', ohat: '..x...x...x...x.', perc: '..........x..x..', roll: true, fill: 'snare' },
+           bass: { type: 'acid' } },
+  phonk: { id: 'phonk', genre: true, group: 'Club', name: 'Phonk', use: 'Cowbell melodies, heavy 808', bpm: 130, div: 6, pulse: 45, minor: true,
+           keys: [44, 45, 46, 47, 49], progs: PHONK, chordBars: 2, wave: 'sawtooth', cut: 900, padAtt: 0.8, padRel: 1.5, padVel: 0.011,
+           layers: { pad: 0.35, keys: 0, bass: 1, arp: 1 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 76], duck: 0.3,
+           groove: { kick: 'x.....x...x.....', kickType: 'punch', snare: '....x.......x...', snareType: 'clap', hat: 'x.x.x.x.x.x.x.x.', hatRoll: true, fill: 'snare' },
+           bass: { type: '808', pat: 'x.....x...x.....' }, lead: { type: 'cowbell', pat: 'x..x..x.x..x..x.', lo: 68, hi: 84 } },
+  chip:  { id: 'chip', genre: true, group: 'Club', name: 'Chiptune', use: '8-bit arps, square leads', bpm: 140, div: 6, pulse: 45, minor: false,
+           keys: [48, 50, 52, 53, 55], progs: CHIP, chordBars: 1, wave: 'square', cut: 3000, padVel: 0.01,
+           layers: { pad: 0, keys: 0, bass: 1, arp: 1 }, keyVoices: 0, keyGap: [8, 8], keyReg: [60, 76], duck: 0.1, chipArp: true,
+           groove: { kick: 'x.......x.x.....', kickType: 'chip', snare: '....x.......x...', snareType: 'chip', hat: 'x.x.x.x.x.x.x.x.', hatType: 'chip' },
+           bass: { type: 'chip', pat: 'x.x.x.x.x.x.x.x.' }, lead: { type: 'chip', pat: 'x.x.xx.xx.x.x.x.', lo: 67, hi: 88 } },
 };
+// The list shows modes by group, in this order.
+const GROUPS = { Focus: 'Focus', Chill: 'Chill genres', Club: 'Club genres' };
+const ORDER = Object.keys(GROUPS).flatMap(g => Object.values(MODES).filter(m => (m.group || 'Focus') === g).map(m => m.id));
 const pulseHz = m => +(m.bpm / 60 * m.div).toFixed(1);
 
 // Every new track remixes its mode inside the genre: tempo, pad shape, drum patterns and kit, bass and lead style.
@@ -516,12 +588,13 @@ const VARY = {
     lead: [{ type: 'arp', pat: 'xxxxxxxxxxxxxxxx', lo: 64, hi: 84 }, { type: 'arp', pat: V.e8, lo: 60, hi: 79 },
            { type: 'saw', pat: 'x..x..x.x..x.x..', lo: 64, hi: 81, len: 0.25 }, { type: 'dream', pat: 'x...x.x...x.x...', lo: 61, hi: 79 }] },
   dnb:   { bpm: [170, 176], wave: ['sawtooth', 'triangle', 'supersaw'], keyVoices: [0, 3, 4],
-    groove: { kick: ['x.........x.....', 'x.........x..x..', 'x......x..x.....'], ghost: ['.......o.......o', '..o....o.o.....o', '......o.......o.'],
+    groove: { kick: ['x.........x.....', 'x.........x..x..', 'x......x..x.....', 'x.x.......x.....'], ghost: ['.......o.......o', '..o....o.o.....o', '......o.......o.', '.o.o..o..o.o..oo'],
               hat: ['o.x.o.x.o.x.o.x.', V.e8, V.off, 'xxxxxxxxxxxxxxxx'], kickType: ['dnb', 'dnb', 'punch'] },
     bass: [{ type: 'reese' }, { type: 'reese' }, { type: 'pluck', pat: 'x.....x...x.....' }, { type: 'glide', pat: 'x.......x.x.....' }],
     lead: [undefined, undefined, { type: 'arp', pat: '..x...x...x...x.', lo: 67, hi: 86 }, { type: 'dream', pat: 'x.....x...x.x...', lo: 64, hi: 84 }] },
   house: { bpm: [118, 125], wave: ['triangle', 'sawtooth', 'square', 'sine'], tone: [3800, 7000],
-    groove: { kickType: ['soft', 'soft', 'punch'], snareType: ['lofi', 'clap'], hat: ['.o.o.o.o.o.o.o.o', 'oooooooooooooooo', '..o...o...o...o.'], ohat: [V.off, V.off, undefined] },
+    groove: { kickType: ['soft', 'soft', 'punch'], snareType: ['lofi', 'clap'], hat: ['.o.o.o.o.o.o.o.o', 'oooooooooooooooo', '..o...o...o...o.'], ohat: [V.off, V.off, undefined],
+              shaker: ['xoooxoooxoooxooo', 'oxoxoxoxoxoxoxox', undefined], rim: ['.......x......x.', '...x......x.....', undefined] },
     bass: [{ type: 'pluck', pat: 'x.....x...x..x..' }, { type: 'pluck', pat: 'x..x....x..x.x..' }, { type: 'glide', pat: 'x.......x.....x.' }, { type: 'octave', pat: V.e8 }],
     lead: [{ type: 'stab', pat: '..x..x....x..x..', lo: 60, hi: 76 }, { type: 'stab', pat: 'x.....x.....x...', lo: 60, hi: 76 },
            { type: 'stab', pat: '...x..x....x..x.', lo: 62, hi: 79 }, { type: 'arp', pat: V.e8, lo: 60, hi: 76 }, undefined] },
@@ -529,7 +602,7 @@ const VARY = {
     groove: { ohat: [V.off, V.off, '..x...x...x.x.x.'], hat: [undefined, '.x.x.x.x.x.x.x.x'] },
     lead: [{ type: 'saw', pat: 'x.x.x.xxx.x.x.x.', lo: 67, hi: 86, len: 0.2 }, { type: 'saw', pat: 'x..x..x.x.x.x...', lo: 64, hi: 84, len: 0.3 },
            { type: 'saw', pat: 'xxx.x.x.xx.x.x.x', lo: 67, hi: 86, len: 0.12 }] },
-  trance:{ bpm: [132, 140], wave: ['supersaw', 'sawtooth'],
+  trance:{ bpm: [132, 140], wave: ['supersaw', 'sawtooth'], gate: ['xx.xx.x.xx.xx.x.', 'x.xxx.xxx.xxx.x.', 'xxx.xxx.xx.xxx.x', undefined],
     groove: { hat: ['oo.ooo.ooo.ooo.o', V.e8, undefined], snareType: ['clap', 'gated'] },
     bass: [{ type: 'roll', pat: '.xxx.xxx.xxx.xxx' }, { type: 'roll', pat: '..x...x...x...x.' }, { type: 'octave', pat: '.x.x.x.x.x.x.x.x' }],
     lead: [{ type: 'saw', pat: 'x.xx.x.xx.xx.x.x', lo: 64, hi: 81, len: 0.12 }, { type: 'saw', pat: 'x..x..x...x..x..', lo: 64, hi: 84, len: 0.25 },
@@ -545,6 +618,56 @@ const VARY = {
     groove: { kick: ['x.........x.....', 'x.....x...x.....', 'x.......x.......'], hat: [V.e8, 'xxxxxxxxxxxxxxxx', V.off] },
     bass: [{ type: 'glide', pat: 'x.....x...x.....' }, { type: 'glide', pat: 'x.......x..x....' }, { type: 'glide', pat: 'x..x......x.....' }],
     lead: [{ type: 'dream', pat: 'x.xxx.x.xx.x.x..', lo: 61, hi: 81 }, { type: 'dream', pat: 'x.x.x.x.x.x.x.x.', lo: 61, hi: 81 }, { type: 'dream', pat: 'xx.x.xx.x.xx.x..', lo: 64, hi: 84 }] },
+  lofi:  { bpm: [76, 90], wave: ['triangle', 'sine', 'sawtooth'], tone: [3200, 5600],
+    groove: { kick: ['x.......x.x.....', 'x......xx.......', 'x.........x.....', 'x.......x...x...'], hat: [V.e8, 'x.xxx.x.x.xxx.x.', 'xxxxxxxxxxxxxxxx'],
+              ghost: ['...........o...o', '......o........o', undefined], shaker: [undefined, undefined, 'oxoxoxoxoxoxoxox'] },
+    bass: [{ type: 'upright', pat: 'x.....x...x.....' }, { type: 'upright', pat: 'x..x......x..x..' }, { type: 'glide', pat: 'x.......x.......' }],
+    lead: [{ type: 'stab', pat: 'x.....x.....x...', lo: 57, hi: 76, dec: 1.1, strum: 0.012 }, { type: 'stab', pat: 'x.......x.......', lo: 57, hi: 76, dec: 1.5, strum: 0.02 },
+           { type: 'stab', pat: 'x..x....x..x....', lo: 60, hi: 79, dec: 0.8, strum: 0.01 }, { type: 'stab', voice: 'nylon', pat: 'x.....x.....x...', lo: 55, hi: 74, strum: 0.02 }] },
+  bossa: { bpm: [118, 136], wave: ['triangle', 'sine'],
+    groove: { kick: ['x......xx.......', 'x.....x.x.....x.', 'x.......x.......'], rim: ['x..x..x...x..x..', 'x..x...x..x..x..', '..x..x..x..x..x.'], shaker: ['xoxoxoxoxoxoxoxo', 'xooxxooxxooxxoox'] },
+    bass: [{ type: 'upright', pat: 'x.....x.x.....x.', fifths: true }, { type: 'upright', pat: 'x.......x.......', fifths: true }, { type: 'upright', pat: 'x..x....x..x....', fifths: true }],
+    lead: [{ type: 'stab', voice: 'nylon', pat: 'x..x..x...xx..x.', lo: 55, hi: 74, strum: 0.018 }, { type: 'stab', voice: 'nylon', pat: 'x.x..x.x..x..x..', lo: 55, hi: 74, strum: 0.014 },
+           { type: 'stab', voice: 'nylon', pat: '.x.x..x..x.x..x.', lo: 57, hi: 76, strum: 0.012 }] },
+  dub:   { bpm: [112, 124], wave: ['sine', 'triangle'],
+    groove: { hat: ['..o...o...o...o.', 'o.o.o.o.o.o.o.o.', undefined], rim: ['............x...', '......x.....x...', undefined], shaker: ['oooooooooooooooo', undefined] },
+    bass: [{ type: 'glide', pat: 'x.....x.....x...' }, { type: 'glide', pat: 'x.......x.......' }, { type: 'glide', pat: 'x..x......x.....' }],
+    lead: [{ type: 'stab', voice: 'dub', pat: '...x......x.....', lo: 57, hi: 72 }, { type: 'stab', voice: 'dub', pat: '..x.......x.....', lo: 57, hi: 72 },
+           { type: 'stab', voice: 'dub', pat: '..x...x...x...x.', lo: 55, hi: 70 }, { type: 'stab', voice: 'dub', pat: '.......x.......x', lo: 57, hi: 72 }] },
+  piano: { bpm: [108, 116], wave: ['triangle', 'sine', 'sawtooth'],
+    groove: { rim: ['...x..x....x..x.', '..x..x....x..x..', '...x...x...x...x'], shaker: ['xoxxxoxxxoxxxoxx', 'xxxxxxxxxxxxxxxx', 'xoxoxoxoxoxoxoxo'],
+              perc: ['..x....x..X.....', 'x..x..X...x.....', '......x.X.....x.', undefined] },
+    bass: [{ type: 'log', pat: '..x..x..x.x...x.' }, { type: 'log', pat: 'x..x..x...x.x...' }, { type: 'log', pat: '...x..x.x..x..x.' }, { type: 'log', pat: 'x.....x.x..x.x..' }],
+    lead: [{ type: 'stab', pat: 'x.....x...x.....', lo: 60, hi: 79, dec: 0.9, strum: 0.008 }, { type: 'stab', pat: '..x...x...x...x.', lo: 60, hi: 79, dec: 0.5 },
+           { type: 'stab', voice: 'organ', pat: 'x.....x...x.....', lo: 60, hi: 76 }] },
+  deephouse: { bpm: [118, 125], wave: ['sawtooth', 'square', 'triangle'],
+    groove: { kickType: ['punch', 'soft'], hat: ['.o.o.o.o.o.o.o.o', 'oooooooooooooooo', undefined], ohat: [V.off, V.off, '..x...x...x...xx'],
+              shaker: ['oxoxoxoxoxoxoxox', 'xoooxoooxoooxooo', undefined], rim: [undefined, '...x......x.....'] },
+    bass: [{ type: 'pluck', pat: '..x...x.x.x...x.' }, { type: 'pluck', pat: 'x..x..x...x..x..' }, { type: 'pluck', pat: '..x..x....x..x.x' }, { type: 'glide', pat: 'x.....x...x.....' }],
+    lead: [{ type: 'stab', voice: 'organ', pat: '..x...x...x..x..', lo: 60, hi: 76 }, { type: 'stab', voice: 'organ', pat: 'x..x..x...x..x..', lo: 60, hi: 76 },
+           { type: 'stab', pat: '..x..x....x..x..', lo: 60, hi: 76, dec: 0.3 }, { type: 'stab', voice: 'organ', pat: '...x..x....x..x.', lo: 62, hi: 79 }] },
+  garage:{ bpm: [128, 136],
+    groove: { kick: ['x.........x.....', 'x......x..x.....', 'x.........x..x..', 'x.....x...x.....'], rim: ['.......x.....x..', '...x.......x....', undefined],
+              shaker: ['oxooxoooxooxoooo', 'oxoxoxoxoxoxoxox'], hat: ['..x...x...x...x.', '.ox..ox..ox..ox.'] },
+    bass: [{ type: 'glide', pat: 'x.....x...x..x..' }, { type: 'glide', pat: 'x..x......x.....' }, { type: 'pluck', pat: 'x.....x...x..x..' }],
+    lead: [{ type: 'stab', pat: '..x..x....x..x..', lo: 60, hi: 76, dec: 0.25 }, { type: 'stab', voice: 'organ', pat: '..x..x....x..x..', lo: 60, hi: 76 },
+           { type: 'stab', pat: 'x..x..x...x.....', lo: 62, hi: 79, dec: 0.2 }, { type: 'stab', voice: 'chop', pat: '..x..x.x..x..x..', lo: 60, hi: 76 }] },
+  disco: { bpm: [112, 124], wave: ['sawtooth', 'supersaw', 'square'],
+    groove: { hat: ['xoxoxoxoxoxoxoxo', V.e8, 'oooooooooooooooo'], shaker: [undefined, 'oxoxoxoxoxoxoxox'], perc: [undefined, undefined, '..x...x...X...x.'] },
+    bass: [{ type: 'octave', pat: 'x.x.x.x.x.x.x.x.' }, { type: 'octave', pat: 'x.xxx.x.x.xxx.x.' }, { type: 'pluck', pat: 'x..x.xx.x..x.xx.' }],
+    lead: [{ type: 'stab', voice: 'chop', pat: '..x.x..x.ox.x..x', lo: 60, hi: 79, strum: 0.006 }, { type: 'stab', voice: 'chop', pat: 'o.x.o.x.o.x.o.x.', lo: 60, hi: 79, strum: 0.006 },
+           { type: 'stab', voice: 'organ', pat: '..x...x...x...x.', lo: 60, hi: 79 }, { type: 'stab', pat: 'x..x..x...x..x..', lo: 60, hi: 79, dec: 0.4 }] },
+  acid:  { bpm: [128, 138], wave: ['square', 'sawtooth', 'triangle'],
+    groove: { kickType: ['techno', 'techno', 'punch'], kick: [V.four, V.four, 'x...x...x...x..x'], hat: ['xoxoxoxoxoxoxoxo', V.off, 'oooooooooooooooo'],
+              perc: ['..........x..x..', '...x......x.....', undefined], rim: [undefined, '..x..x..x..x..x.'] } },
+  phonk: { bpm: [120, 140], wave: ['sawtooth', 'square'],
+    groove: { kick: ['x.....x...x.....', 'x.........x.....', 'x..x......x.....'], hat: ['x.x.x.x.x.x.x.x.', 'xxxxxxxxxxxxxxxx', 'x.xxx.x.x.xxx.x.'] },
+    bass: [{ type: '808', pat: 'x.....x...x.....' }, { type: '808', pat: 'x.........x.....' }, { type: '808', pat: 'x..x......x..x..' }],
+    lead: [{ type: 'cowbell', pat: 'x..x..x.x..x..x.', lo: 68, hi: 84 }, { type: 'cowbell', pat: 'x.x.x.x.x.x.x.x.', lo: 68, hi: 84 }, { type: 'cowbell', pat: 'xxx.x.x.xx.x.x..', lo: 70, hi: 86 }] },
+  chip:  { bpm: [128, 160],
+    groove: { kick: ['x.......x.x.....', 'x...x...x...x...', 'x.....x.x.......'], hat: ['x.x.x.x.x.x.x.x.', 'xxxxxxxxxxxxxxxx', '..x...x...x...x.'] },
+    bass: [{ type: 'chip', pat: 'x.x.x.x.x.x.x.x.' }, { type: 'chip', pat: 'x..xx.x.x..xx.x.' }, { type: 'chip', pat: 'xxxxxxxxxxxxxxxx' }],
+    lead: [{ type: 'chip', pat: 'x.x.xx.xx.x.x.x.', lo: 67, hi: 88 }, { type: 'chip', pat: 'x...x.x.x...x.x.', lo: 67, hi: 88 }, { type: 'chip', pat: 'xxx.x.x.xx.xxx..', lo: 69, hi: 91 }] },
 };
 // Loudness of each pad shape's fundamental, so a new shape plays at the same level as the designed one.
 const FUND = { sine: 1, triangle: 0.81, square: 1.27, sawtooth: 0.64, supersaw: 0.96 };
@@ -559,6 +682,7 @@ function remix(base) {
   if (v.groove) { m.groove = Object.assign({}, base.groove); for (const k in v.groove) m.groove[k] = pick(v.groove[k]); }
   if (v.bass) m.bass = pick(v.bass);
   if (v.lead) m.lead = pick(v.lead);
+  if (v.gate) m.gate = pick(v.gate);
   if (m.lead && m.lead !== base.lead) { // a lead the mode doesn't normally have needs its layer open (stabs play on the keys layer)
     m.layers = Object.assign({}, base.layers);
     if (m.lead.type === 'stab') m.layers.keys = Math.max(m.layers.keys, 0.8); else m.layers.arp = Math.max(m.layers.arp, 0.8);
@@ -572,9 +696,10 @@ const makeSound = () => ({
   leadWave: pick(['sawtooth', 'sawtooth', 'square']), leadDet: rand(0.6, 1.4), pluckWave: pick(['triangle', 'triangle', 'square', 'sine']),
   bassWave: pick(['sawtooth', 'sawtooth', 'square']), bassCut: rand(0.75, 1.35),
   reed: pick([[-10, 33], [-6, 18], [-14, 40], [8, -22]]), reedVib: rand(2.6, 4.4), dreamVib: rand(3.8, 5.4), dreamDet: rand(4, 11),
+  acidRes: rand(0.85, 1.15), chipWave: pick(['pulse25', 'pulse12', 'pulse50']), organ: pick(['organ', 'organ', 'organ2']), bell: rand(1.4, 1.56),
 });
 const DESIGNED = { kp: 1, kd: 1, st: 1, ht: 1, fm: 1, padDet: 1, verb: 1, echo: 0.75, leadWave: 'sawtooth', leadDet: 1, pluckWave: 'triangle',
-  bassWave: 'sawtooth', bassCut: 1, reed: [-10, 33], reedVib: 3.2, dreamVib: 4.4, dreamDet: 7 };
+  bassWave: 'sawtooth', bassCut: 1, reed: [-10, 33], reedVib: 3.2, dreamVib: 4.4, dreamDet: 7, acidRes: 1, chipWave: 'pulse25', organ: 'organ', bell: 1.48 };
 
 // Fine-tune sliders run 0–100; 50 means "as the mode was designed". Saved per mode.
 const fxDefaults = m => ({
@@ -670,7 +795,8 @@ class Engine {
 
     this.genBus = c.createGain();
     this.tone = c.createBiquadFilter(); this.tone.type = 'lowpass'; this.tone.Q.value = 0.5; this.tone.frequency.value = 20000;
-    this.genBus.connect(this.tone).connect(this.amIn);
+    this.modeGain = c.createGain(); // per-mode loudness match
+    this.genBus.connect(this.modeGain).connect(this.tone).connect(this.amIn);
     // Sidechain: everything melodic goes through `duck`, which dips on each kick.
     this.duck = c.createGain(); this.duck.connect(this.genBus);
     this.trackBus = c.createGain(); this.trackBus.gain.value = 0; this.trackBus.connect(this.amIn);
@@ -682,7 +808,8 @@ class Engine {
 
     this.padBus = c.createGain();
     this.padFilter = c.createBiquadFilter(); this.padFilter.type = 'lowpass'; this.padFilter.Q.value = 0.6; this.padFilter.frequency.value = 900;
-    this.padLayer = c.createGain(); this.padBus.connect(this.padFilter).connect(this.padLayer).connect(this.duck); send(this.padLayer, 0.45);
+    this.padGate = c.createGain(); // trance gate: chops the pad in a 16th-note rhythm
+    this.padLayer = c.createGain(); this.padBus.connect(this.padFilter).connect(this.padGate).connect(this.padLayer).connect(this.duck); send(this.padLayer, 0.45);
     this.keysLayer = c.createGain(); this.keysLayer.connect(this.duck); send(this.keysLayer, 0.6);
     this.bassFilter = c.createBiquadFilter(); this.bassFilter.type = 'lowpass'; this.bassFilter.frequency.value = 220;
     this.bassLayer = c.createGain(); this.bassFilter.connect(this.bassLayer).connect(this.duck);
@@ -693,9 +820,13 @@ class Engine {
     // Custom oscillator shapes from measured harmonic levels: a hollow musette reed, and a soft sine with a bit of 2nd harmonic.
     const pw = amps => { const re = new Float32Array(amps.length + 1), im = new Float32Array(amps.length + 1); amps.forEach((a, i) => { im[i + 1] = a; }); return c.createPeriodicWave(re, im); };
     this.waves = { reed: pw([1, 0.06, 0.2, 0.04, 0.05, 0.05, 0.02, 0.015]), dream: pw([1, 0.35, 0.056, 0.08, 0.03, 0.04]) };
+    // House organ drawbars (two registrations), and NES-style pulse waves at 25%, 12.5% and 50% duty.
+    this.waves.organ = pw([1, 0.7, 0.45, 0.3, 0.12, 0.2, 0, 0.12]); this.waves.organ2 = pw([1, 0.9, 0.2, 0.5, 0, 0.3, 0, 0.25, 0, 0.1]);
+    const pulse = d => { const n = 40, re = new Float32Array(n), im = new Float32Array(n); for (let k = 1; k < n; k++) re[k] = 2 / (k * Math.PI) * Math.sin(k * Math.PI * d); return c.createPeriodicWave(re, im); };
+    this.waves.pulse25 = pulse(0.25); this.waves.pulse12 = pulse(0.125); this.waves.pulse50 = pulse(0.5);
     // Ping-pong echo on dotted eighths (left repeat, then right), fed by the melodies and the ear candy.
     this.echoIn = c.createGain(); this.dl = c.createDelay(2); this.dr = c.createDelay(2);
-    const fb = c.createGain(); fb.gain.value = 0.36;
+    const fb = this.echoFb = c.createGain(); fb.gain.value = 0.36;
     const ehp = c.createBiquadFilter(); ehp.type = 'highpass'; ehp.frequency.value = 300;
     const elp = c.createBiquadFilter(); elp.type = 'lowpass'; elp.frequency.value = 3200;
     const merge = c.createChannelMerger(2), echoRet = c.createGain(); echoRet.gain.value = 0.8;
@@ -705,6 +836,7 @@ class Engine {
     this.keysEcho = c.createGain(); this.keysLayer.connect(this.keysEcho).connect(this.echoIn);
     this.candyBus = c.createGain(); this.candyBus.connect(this.duck); send(this.candyBus, 0.5);
     const candyEcho = c.createGain(); candyEcho.gain.value = 0.6; this.candyBus.connect(candyEcho).connect(this.echoIn);
+    this.dubSend = c.createGain(); this.dubSend.gain.value = 0.9; this.dubSend.connect(this.echoIn); // dub stabs live in the echo
     // Movement: the arp/lead layer drifts left and right once every two bars.
     this.panLfo = c.createOscillator(); this.panAmt = c.createGain(); this.panAmt.gain.value = 0;
     this.panLfo.connect(this.panAmt).connect(this.arpPan.pan); this.panLfo.start();
@@ -805,13 +937,19 @@ class Engine {
       this.key = this.fx.key === 'auto' ? pick(m.keys) : keyMidi(+this.fx.key); this.chord = null;
       this.prog = m.progs ? pick(m.progs) : null; this.progPos = 0;
       this.newRiff();
-      this.sec = 'intro';
+      this.sec = 'intro'; this.lastPad = null;
     }
     this.skipIntro = keep;
     this.chordNext = at; this.arpNext = at; this.arpStep = 0; this.fxNext = at;
     this.voices = Array.from({ length: m.keyVoices }, () => ({ next: this.q(at + rand(1, m.keyGap[1] * 0.6) * this.beat), last: null }));
     this.applyFx(at, first ? 0.01 : 1.2);
-    this.tone.frequency.setTargetAtTime(m.tone || 20000, at, first ? 0.01 : 1);
+    this.modeGain.gain.setTargetAtTime(m.gain || 1, at, first ? 0.01 : 0.5);
+    const fq = this.tone.frequency, top = m.tone || 20000;
+    fq.cancelScheduledValues(at);
+    if (m.genre && !keep && !m.introPlays) { fq.setValueAtTime(900, at); fq.exponentialRampToValueAtTime(top, at + 8 * this.bar); } // intro: the filter opens over 8 bars
+    else fq.setTargetAtTime(top, at, first ? 0.01 : 1);
+    this.echoFb.gain.setTargetAtTime(m.echoFb || 0.36, at, 0.3);
+    this.padGate.gain.cancelScheduledValues(at); this.padGate.gain.setValueAtTime(1, at);
     this.duck.gain.cancelScheduledValues(at); this.duck.gain.setValueAtTime(1, at);
     this.step = 0; this.stepNext = at;
     this.dl.delayTime.setValueAtTime(this.beat * this.snd.echo, at); this.dr.delayTime.setValueAtTime(this.beat * this.snd.echo, at);
@@ -823,11 +961,13 @@ class Engine {
   // Sets every fine-tune level for the current mode. Called on mode change and whenever a slider moves.
   applyFx(at, tc) {
     const m = this.mode, L = m.layers, f = this.fx, t = at ?? this.ctx.currentTime, k = tc ?? 0.15;
-    this.padLayer.gain.setTargetAtTime(L.pad, t, k);
-    this.keysLayer.gain.setTargetAtTime(L.keys * 0.9 * lvl(f.melody), t, k);
-    this.arpLayer.gain.setTargetAtTime(L.arp * lvl(f.melody), t, k);
-    this.bassLayer.gain.setTargetAtTime(L.bass * lvl(f.bass), t, k);
-    this.drumBus.gain.setTargetAtTime(m.groove ? 0.5 * lvl(f.drums) : 0, t, Math.min(k, 0.3));
+    const so = this.s.solo, on = n => !so || so.split(',').includes(n) ? 1 : 0; // solo one layer: only used by the level tests
+    this.padLayer.gain.setTargetAtTime(L.pad * on('pad'), t, k);
+    this.keysLayer.gain.setTargetAtTime(L.keys * 0.9 * lvl(f.melody) * on('keys'), t, k);
+    this.arpLayer.gain.setTargetAtTime(L.arp * lvl(f.melody) * on('arp'), t, k);
+    this.bassLayer.gain.setTargetAtTime(L.bass * lvl(f.bass) * on('bass'), t, k);
+    this.drumBus.gain.setTargetAtTime(m.groove ? 0.5 * lvl(f.drums) * on('drums') : 0, t, Math.min(k, 0.3));
+    this.candyBus.gain.setTargetAtTime(on('candy'), t, k);
     this.verbRet.gain.setTargetAtTime(0.85 * f.space / 50 * this.snd.verb, t, k);
     this.arpEcho.gain.setTargetAtTime(f.echo / 100 * 0.55, t, k);
     this.keysEcho.gain.setTargetAtTime(f.echo / 100 * 0.45, t, k);
@@ -837,8 +977,13 @@ class Engine {
   }
   refreshFx() { this.fx = fxFor(this.s, this.mode.id); this.applyFx(); }
   // A fresh riff: the 16-step motif for saw and dream leads, a two-bar accordion phrase, a stutter-bass pattern.
+  // Motifs walk mostly by step so leads sound sung rather than random; motifB is the answer phrase (same start, new ending).
   newRiff() {
-    this.motif = Array.from({ length: 16 }, () => Math.floor(Math.random() * 6));
+    const walk = () => { let v = Math.floor(Math.random() * 6); return Array.from({ length: 16 }, (_, i) => i ? (v = Math.max(0, Math.min(5, v + pick([-2, -1, -1, 0, 1, 1, 2])))) : v); };
+    this.motif = walk(); this.motifB = this.motif.slice(0, 10).concat(walk().slice(10));
+    this.bassRiff = Array.from({ length: 16 }, () => pick([0, 0, 0, 12, 12, 7])); // off-beat bass hits jump to the octave or fifth
+    this.acid = Array.from({ length: 16 }, (_, i) => ({ on: i % 4 === 0 || Math.random() < 0.6, n: pick([0, 0, 0, 0, 12, 12, 3, 7, 10, 15, 5]),
+      acc: Math.random() < 0.3, slide: Math.random() < 0.22 }));
     this.phrase = makePhrase(); this.stutter = pick(STUTTER); this.lastLead = null; this.lastBass = null;
   }
   releaseFrom(at, sec) { // fade out notes that are still ringing at `at`
@@ -984,9 +1129,14 @@ class Engine {
   kick(t, vel, type) {
     const c = this.ctx, o = c.createOscillator(), g = c.createGain();
     // [start Hz, end Hz, sweep time, hold before decay, decay time]
-    const P = { punch: [130, 50, 0.03, 0.035, 0.035], soft: [125, 50, 0.032, 0.05, 0.045], dnb: [160, 44, 0.025, 0.055, 0.025] };
+    const P = { punch: [130, 50, 0.03, 0.035, 0.035], soft: [125, 50, 0.032, 0.05, 0.045], dnb: [160, 44, 0.025, 0.055, 0.025],
+                techno: [150, 46, 0.03, 0.05, 0.065] };
     let end;
-    if (type === 'hard') { // 2010 hardstyle: bright distorted punch that settles into a flat ~50 Hz tail, cut dead at ~350 ms
+    if (type === 'chip') { // 8-bit kick: a triangle that dives from 220 to 45 Hz and stops
+      o.type = 'triangle'; o.frequency.setValueAtTime(220 * this.snd.kp, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.06);
+      g.gain.setValueAtTime(vel * 0.6, t); g.gain.setValueAtTime(vel * 0.6, t + 0.05); g.gain.linearRampToValueAtTime(0, t + 0.09);
+      o.connect(g); end = t + 0.1;
+    } else if (type === 'hard') { // 2010 hardstyle: bright distorted punch that settles into a flat ~50 Hz tail, cut dead at ~350 ms
       let tail = mtof(this.croot || 45); while (tail > 62) tail /= 2;
       o.frequency.setValueAtTime(320, t); o.frequency.exponentialRampToValueAtTime(140, t + 0.02);
       o.frequency.exponentialRampToValueAtTime(82, t + 0.05); o.frequency.exponentialRampToValueAtTime(tail * 1.15, t + 0.1);
@@ -1024,6 +1174,15 @@ class Engine {
       this.noise(t + 0.03, vel * 0.2, 'highpass', 5000 * st, 0.6, 0.045);
       return;
     }
+    if (type === 'chip') { // 8-bit snare: a noise burst over a falling square blip
+      this.noise(t, vel * 0.4, 'highpass', 1200 * st, 0.6, 0.06);
+      const o = c.createOscillator(), g = c.createGain(); o.type = 'square';
+      o.frequency.setValueAtTime(240 * st, t); o.frequency.exponentialRampToValueAtTime(110, t + 0.04);
+      g.gain.setValueAtTime(vel * 0.12, t); g.gain.linearRampToValueAtTime(0, t + 0.05);
+      o.connect(g).connect(this.drumBus); o.start(t); o.stop(t + 0.06);
+      o.addEventListener('ended', () => { o.disconnect(); g.disconnect(); });
+      return;
+    }
     // [body Hz, body level, body decay, noise filter, noise Hz, noise level, noise decay]
     const S = { gated: [195, 0.3, 0.09, 'bandpass', 1800, 0.45, 0.08], dnb: [205, 0.55, 0.045, 'highpass', 1800, 0.42, 0.06],
                 lofi: [180, 0.4, 0.05, 'bandpass', 1500, 0.34, 0.07] }[type] || [200, 0.4, 0.05, 'bandpass', 1500, 0.36, 0.08];
@@ -1037,9 +1196,10 @@ class Engine {
     if (type === 'gated') this.noise(t, vel * 2.2, 'bandpass', 1600, 0.5, 0.05, this.gated); // flat 80s room that stops dead
   }
   // Hats: noise plus six inharmonic square waves, the TR-808/909 trick for the metallic shimmer.
-  hat(t, vel, open) {
+  hat(t, vel, open, type) {
     const c = this.ctx, ht = this.snd.ht, dc = (open ? 0.09 : 0.02) / ht, end = t + dc * 7;
     const pan = Math.max(-1, Math.min(1, (open ? 0.15 : -0.15) + rand(-1, 1) * this.fx.move / 100 * 0.5));
+    if (type === 'chip') { this.noise(t, vel * 0.12, 'highpass', 8000, 0.7, open ? 0.06 : 0.012, null, pan); return; } // 8-bit: plain noise
     this.noise(t, vel * (open ? 0.12 : 0.1), 'highpass', (open ? 5500 : 7000) * ht, 0.8, dc, null, pan);
     const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 7000 * ht;
     const g = c.createGain(); g.gain.setValueAtTime(vel * (open ? 0.05 : 0.04), t); g.gain.setTargetAtTime(0, t + 0.001, dc);
@@ -1051,6 +1211,25 @@ class Engine {
     srcs[5].onended = () => { srcs.forEach(o => o.disconnect()); hp.disconnect(); g.disconnect(); p.disconnect(); };
   }
   crash(t) { this.noise(t, 0.12, 'highpass', 4500, 0.5, 0.8, null, 0); }
+  shaker(t, vel) { this.noise(t, vel * 0.09, 'bandpass', 7500 * this.snd.ht, 1.1, 0.028, null, 0.25 + rand(-0.1, 0.1)); }
+  rim(t, vel) { // rimshot click: a high triangle ping plus a tick of noise
+    const c = this.ctx, o = c.createOscillator(), g = c.createGain(), p = c.createStereoPanner(), st = this.snd.st;
+    o.type = 'triangle'; o.frequency.value = 1750 * st; p.pan.value = -0.2;
+    g.gain.setValueAtTime(vel * 0.22, t); g.gain.setTargetAtTime(0, t + 0.001, 0.011);
+    o.connect(g).connect(p).connect(this.drumBus); o.start(t); o.stop(t + 0.15);
+    o.onended = () => { o.disconnect(); g.disconnect(); p.disconnect(); };
+    this.noise(t, vel * 0.12, 'bandpass', 3800 * st, 1.2, 0.006, null, -0.2);
+  }
+  tom(t, vel, f, gated) { // fill tom; synthwave sends it through the gated room
+    const c = this.ctx, o = c.createOscillator(), g = c.createGain(), p = c.createStereoPanner();
+    o.frequency.setValueAtTime(f * 1.6, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.04);
+    g.gain.setValueAtTime(vel * 0.45, t); g.gain.setTargetAtTime(0, t + 0.005, 0.11);
+    p.pan.value = Math.max(-0.6, Math.min(0.6, (f - 160) / 120));
+    o.connect(g).connect(p).connect(this.drumBus); o.start(t); o.stop(t + 0.7);
+    o.onended = () => { o.disconnect(); g.disconnect(); p.disconnect(); };
+    this.noise(t, vel * 0.08, 'bandpass', 1200, 0.8, 0.02, null, p.pan.value);
+    if (gated) this.noise(t, vel * 1.6, 'bandpass', 900, 0.5, 0.05, this.gated);
+  }
   crackle(t) { this.noise(t, rand(0.02, 0.09), 'bandpass', rand(1500, 5000), 0.5, rand(0.0008, 0.003), null, rand(-0.8, 0.8)); }
 
   // Short synth bass with a filter "pluck"; reese is the long, detuned DnB bass.
@@ -1148,17 +1327,143 @@ class Engine {
     this.track(t, end, g, srcs);
   }
   // Soft 808-style bass, lightly driven so small speakers hear it, sliding in from the previous note.
-  glideBass(m, t, dur, vel, from) {
-    const c = this.ctx, f = mtof(m), end = t + dur + 0.3;
-    const drive = c.createGain(); drive.gain.value = 1.6;
-    const ws = c.createWaveShaper(); ws.curve = this.softCurve;
-    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel * 0.05, t + 0.005);
-    g.gain.setValueAtTime(vel * 0.05, t + dur); g.gain.setTargetAtTime(0, t + dur, 0.06);
+  // hard: the phonk 808, driven into distortion with a pitch punch at the start of each fresh note.
+  glideBass(m, t, dur, vel, from, hard) {
+    const c = this.ctx, f = mtof(m), end = t + dur + 0.3, lv = hard ? 0.04 : 0.05;
+    const drive = c.createGain(); drive.gain.value = hard ? 4 : 1.6;
+    const ws = c.createWaveShaper(); ws.curve = hard ? this.curve : this.softCurve;
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel * lv, t + 0.005);
+    g.gain.setValueAtTime(vel * lv, t + dur); g.gain.setTargetAtTime(0, t + dur, 0.06);
     drive.connect(ws).connect(g).connect(this.bassLayer);
     const o = this.osc('sine', f, t, end, drive);
     if (from && from !== m) { o.frequency.setValueAtTime(mtof(from), t); o.frequency.exponentialRampToValueAtTime(f, t + 0.07); }
+    else if (hard) { o.frequency.setValueAtTime(f * 1.5, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.04); }
     o.addEventListener('ended', () => { drive.disconnect(); ws.disconnect(); g.disconnect(); });
     this.track(t, end, g, [o]);
+  }
+  // Finger-plucked upright bass: a round sine with a woody triangle attack that closes quickly.
+  upright(m, t, dur, vel) {
+    const c = this.ctx, f = mtof(m), d = Math.min(dur, 1.2), end = t + d + 0.3;
+    const flt = c.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.setValueAtTime(900, t); flt.frequency.setTargetAtTime(350, t, 0.1);
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel * 0.068, t + 0.008);
+    g.gain.setTargetAtTime(vel * 0.04, t + 0.008, 0.1); g.gain.setTargetAtTime(0, t + d, 0.05);
+    const tri = c.createGain(); tri.gain.value = 0.5;
+    tri.connect(flt).connect(g); g.connect(this.bassLayer);
+    const a = this.osc('sine', f, t, end, g), b = this.osc('triangle', f, t, end, tri);
+    a.frequency.setValueAtTime(f * 1.015, t); a.frequency.exponentialRampToValueAtTime(f, t + 0.03);
+    b.addEventListener('ended', () => { flt.disconnect(); g.disconnect(); tri.disconnect(); });
+    this.track(t, end, g, [a, b]);
+  }
+  // Amapiano log drum: a thump that drops into its note and sags a little, with a woody knock and some drive.
+  logDrum(m, t, vel) {
+    const c = this.ctx, f = mtof(m), end = t + 0.7;
+    const drive = c.createGain(); drive.gain.value = 2.2;
+    const ws = c.createWaveShaper(); ws.curve = this.softCurve;
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel * 0.16, t + 0.002); g.gain.setTargetAtTime(0, t + 0.01, 0.16);
+    const kg = c.createGain(); kg.gain.setValueAtTime(vel * 0.5, t); kg.gain.setTargetAtTime(0, t, 0.02);
+    drive.connect(ws).connect(g).connect(this.bassLayer); kg.connect(g);
+    const o = this.osc('sine', f, t, end, drive), k = this.osc('triangle', f * 3, t, t + 0.15, kg);
+    o.frequency.setValueAtTime(f * 2, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.03); o.frequency.exponentialRampToValueAtTime(f * 0.93, t + 0.5);
+    o.addEventListener('ended', () => { drive.disconnect(); ws.disconnect(); g.disconnect(); kg.disconnect(); });
+    this.track(t, end, g, [o, k]);
+  }
+  // TB-303 style acid: a saw or square through a screaming resonant filter whose envelope snaps shut; accents open it wider, slides glide.
+  acidNote(m, t, len, acc, from) {
+    const c = this.ctx, f = mtof(m), end = t + len + 0.2, e = this.fx.euph / 100, bc = this.snd.bassCut, lv = acc ? 0.14 : 0.1;
+    const flt = c.createBiquadFilter(); flt.type = 'lowpass'; flt.Q.value = (acc ? 18 : 13) * this.snd.acidRes;
+    flt.frequency.setValueAtTime((500 + 1800 * e + (acc ? 1400 : 0)) * bc, t); flt.frequency.setTargetAtTime(160 * bc, t, acc ? 0.11 : 0.07);
+    const ws = c.createWaveShaper(); ws.curve = this.softCurve;
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(lv, t + 0.003);
+    g.gain.setValueAtTime(lv, t + len); g.gain.linearRampToValueAtTime(0, t + len + 0.015);
+    flt.connect(ws).connect(g).connect(this.bassLayer);
+    const o = this.osc(this.snd.bassWave, f, t, end, flt);
+    if (from && from !== m) { o.frequency.setValueAtTime(mtof(from), t); o.frequency.exponentialRampToValueAtTime(f, t + 0.06); }
+    o.addEventListener('ended', () => { flt.disconnect(); ws.disconnect(); g.disconnect(); });
+    this.track(t, end, g, [o]);
+  }
+  // Tuned 808 cowbell: two square waves 1.48x apart through a band-pass; the phonk lead.
+  cowbell(m, t, vel) {
+    const c = this.ctx, f = mtof(m), end = t + 0.6;
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 1.25; bp.Q.value = 1.2;
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel * 0.24, t + 0.002);
+    g.gain.setTargetAtTime(vel * 0.08, t + 0.002, 0.02); g.gain.setTargetAtTime(0, t + 0.05, 0.12);
+    const hi = c.createGain(); hi.gain.value = 0.7;
+    const p = c.createStereoPanner(); p.pan.value = rand(-0.15, 0.15);
+    hi.connect(bp); bp.connect(g).connect(p).connect(this.arpLayer);
+    const a = this.osc('square', f, t, end, bp), b = this.osc('square', f * this.snd.bell, t, end, hi);
+    b.addEventListener('ended', () => { bp.disconnect(); g.disconnect(); hi.disconnect(); p.disconnect(); });
+    this.track(t, end, g, [a, b]);
+  }
+  // 8-bit voice: a hard-edged pulse or triangle, with a delayed vibrato on long notes.
+  chipNote(m, t, len, vel, wave, dest) {
+    const c = this.ctx, f = mtof(m), end = t + len + 0.02, lv = wave === 'triangle' ? 0.16 : 0.1;
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel * lv, t + 0.002);
+    g.gain.setValueAtTime(vel * lv, t + len); g.gain.linearRampToValueAtTime(0, t + len + 0.01);
+    g.connect(dest);
+    const o = this.osc(wave === 'triangle' ? 'triangle' : this.waves[wave], f, t, end, g), srcs = [o];
+    let va = null;
+    if (len > 0.2) {
+      const vib = c.createOscillator(); vib.frequency.value = 6; va = c.createGain();
+      va.gain.setValueAtTime(0, t + 0.15); va.gain.linearRampToValueAtTime(15, t + 0.3);
+      vib.connect(va).connect(o.detune); vib.start(t); vib.stop(end); srcs.push(vib);
+    }
+    o.addEventListener('ended', () => { g.disconnect(); if (va) va.disconnect(); });
+    this.track(t, end, g, srcs);
+  }
+  // Chord voices for stab leads. Each plays one note; chordHit spreads a chord across them.
+  organ(m, t, vel, pan) { // M1-style house organ: bright drawbars, a key click, a short stab
+    const c = this.ctx, f = mtof(m), end = t + 0.9;
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel * 0.2, t + 0.003);
+    g.gain.setTargetAtTime(vel * 0.12, t + 0.003, 0.05); g.gain.setTargetAtTime(0, t + 0.12, 0.06);
+    const p = c.createStereoPanner(); p.pan.value = pan; g.connect(p).connect(this.keysLayer);
+    const o = this.osc(this.waves[this.snd.organ], f, t, end, g);
+    o.addEventListener('ended', () => { g.disconnect(); p.disconnect(); });
+    this.track(t, end, g, [o]);
+    this.noise(t, vel * 0.03, 'bandpass', 2500, 1, 0.004, this.keysLayer, pan);
+  }
+  dubStab(m, t, vel, pan) { // dub techno: two detuned saws through a soft filter, short; mostly heard through the long echo
+    const c = this.ctx, f = mtof(m), end = t + 0.6, e = this.fx.euph / 100;
+    const flt = c.createBiquadFilter(); flt.type = 'lowpass'; flt.Q.value = 1.5;
+    flt.frequency.setValueAtTime(700 + 1600 * e, t); flt.frequency.setTargetAtTime(300, t, 0.15);
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel * 0.135, t + 0.004); g.gain.setTargetAtTime(0, t + 0.004, 0.11);
+    const p = c.createStereoPanner(); p.pan.value = pan;
+    flt.connect(g).connect(p); p.connect(this.keysLayer); p.connect(this.dubSend);
+    const a = this.osc('sawtooth', f, t, end, flt, -8), b = this.osc('sawtooth', f, t, end, flt, 8);
+    b.addEventListener('ended', () => { flt.disconnect(); g.disconnect(); p.disconnect(); });
+    this.track(t, end, g, [a, b]);
+  }
+  nylon(m, t, vel, pan) { // nylon-string guitar: a soft triangle with a little saw for the pick, its filter closing as it rings
+    const c = this.ctx, f = mtof(m), end = t + 1.6;
+    const flt = c.createBiquadFilter(); flt.type = 'lowpass'; flt.Q.value = 0.8;
+    flt.frequency.setValueAtTime(1800 + 1500 * vel, t); flt.frequency.setTargetAtTime(600, t, 0.18);
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel * 0.1, t + 0.003); g.gain.setTargetAtTime(0, t + 0.003, 0.45);
+    const sw = c.createGain(); sw.gain.value = 0.25;
+    const p = c.createStereoPanner(); p.pan.value = pan;
+    sw.connect(flt); flt.connect(g).connect(p).connect(this.keysLayer);
+    const a = this.osc('triangle', f, t, end, flt), b = this.osc('sawtooth', f, t, end, sw, 4);
+    b.addEventListener('ended', () => { flt.disconnect(); g.disconnect(); sw.disconnect(); p.disconnect(); });
+    this.track(t, end, g, [a, b]);
+  }
+  chop(m, t, vel, pan) { // muted funk guitar: a bright, very short saw through a band-pass; ghost hits are just a scratch
+    const c = this.ctx, f = mtof(m), end = t + 0.35;
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = Math.min(4000, f * 3); bp.Q.value = 1.2;
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel * 0.38, t + 0.002); g.gain.setTargetAtTime(0, t + 0.002, vel > 0.5 ? 0.06 : 0.018);
+    const p = c.createStereoPanner(); p.pan.value = pan * 0.6 + 0.25;
+    bp.connect(g).connect(p).connect(this.keysLayer);
+    const o = this.osc('sawtooth', f, t, end, bp);
+    o.addEventListener('ended', () => { bp.disconnect(); g.disconnect(); p.disconnect(); });
+    this.track(t, end, g, [o]);
+  }
+  chordHit(Ld, tones, t, v) {
+    const voice = Ld.voice || 'fm', st = Ld.strum ?? 0.004;
+    tones.slice(0, 4).forEach((k, i) => {
+      const tt = t + i * st, pan = (i - 1.5) * 0.2;
+      if (voice === 'organ') this.organ(k, tt, v, pan);
+      else if (voice === 'dub') this.dubStab(k, tt, v, pan);
+      else if (voice === 'nylon') this.nylon(k, tt, v, pan);
+      else if (voice === 'chop') this.chop(k, tt, v, pan);
+      else this.fmKey(k, tt, 0.28 * v / 0.75, pan, null, Ld.dec || 0.18);
+    });
   }
   conga(t, vel, high) { // hand percussion: a short pitched thump with a slap on top
     const c = this.ctx, o = c.createOscillator(), g = c.createGain(), p = c.createStereoPanner(), f = high ? 330 : 230;
@@ -1235,27 +1540,53 @@ class Engine {
       }
       if (m.introBare) this.padLayer.gain.setTargetAtTime(this.sec === 'intro' ? 0 : m.layers.pad, t, 0.4); // the stutter bass starts alone
     }
-    if (pos === 0 && bar % 8 === 7 && Math.random() < candy * 1.3) this.riser(t, this.bar); // whoosh into the next section
+    if (pos === 0 && bar % 8 === 7) { // whoosh into the next section, and maybe a drum fill on the last beat
+      if (Math.random() < candy * 1.3) this.riser(t, this.bar);
+      this.fillOn = G.fill !== 'none' && Math.random() < 0.4 + en * 0.4;
+    }
     const sec = this.sec, sw = 0.5 + f.swing / 100 * 0.2, ip = sec === 'intro' ? m.introPlays : null;
     const drums = sec !== 'break' && ip !== 'lead' && ip !== 'bass', swing = pos % 2 ? (sw - 0.5) * 2 * s16 : 0, ts = t + swing;
+    const hum = () => G.hatType === 'chip' ? 0 : rand(-0.003, 0.003); // a few ms of human looseness on the small percussion
+    if (m.gate) { // trance gate: the pad opens on x and ducks on ., only in the full sections
+      const open = sec !== 'full' || m.gate[pos] === 'x';
+      this.padGate.gain.setTargetAtTime(open ? 1 : 0.12, t, 0.004);
+    }
     if (drums) {
       const k = hit(G.kick, pos); if (k && ip !== 'tops') this.kick(t, k, G.kickType);
-      let sn = hit(G.snare, pos) || hit(G.ghost, pos);
-      if (!sn && en > 0.7 && pos % 2 && Math.random() < (en - 0.7) * 0.4) sn = 0.3; // extra ghost notes
-      if (sn && (sec !== 'intro' || ip === 'tops')) this.snare(ts, sn, G.snareType);
+      if (this.fillOn && bar % 8 === 7 && pos >= 12 && sec !== 'intro') { // fill: toms rolling down, or a snare run
+        if (G.fill === 'snare' || G.snareType === 'chip') this.snare(ts, 0.4 + 0.15 * (pos - 12), G.snareType);
+        else this.tom(ts, 0.7, [220, 175, 140, 110][pos - 12] * this.snd.st, G.fill === 'gated');
+      } else {
+        let sn = hit(G.snare, pos) || hit(G.ghost, pos);
+        if (!sn && en > 0.7 && pos % 2 && Math.random() < (en - 0.7) * 0.4) sn = 0.3; // extra ghost notes
+        if (sn && (sec !== 'intro' || ip === 'tops')) this.snare(ts, sn, G.snareType);
+      }
       let h = hit(G.hat, pos);
       if (h && en < 0.35 && Math.random() < (0.35 - en) * 2.5) h = 0; // thin the hats out
       if (!h && en > 0.6 && !hit(G.ohat, pos) && Math.random() < (en - 0.6) * 2) h = 0.3; // fill in 16ths
-      if (h) this.hat(ts, h * rand(0.85, 1), false);
-      if (G.hatRoll && pos >= 12 && bar % 2 && Math.random() < 0.25 + en * 0.3) this.hat(ts + s16 / 2, 0.35, false); // trap-style 32nd roll
-      const oh = hit(G.ohat, pos); if (oh && sec !== 'intro') this.hat(ts, oh, true);
-      const pc = G.perc && G.perc[pos]; if (pc && pc !== '.' && sec !== 'intro') this.conga(ts, pc === 'X' ? 0.9 : 0.7, pc === 'X');
+      if (h) this.hat(ts + hum(), h * rand(0.85, 1), false, G.hatType);
+      if (G.hatRoll && pos >= 12 && bar % 2 && Math.random() < 0.25 + en * 0.3) this.hat(ts + s16 / 2, 0.35, false, G.hatType); // trap-style 32nd roll
+      const oh = hit(G.ohat, pos); if (oh && sec !== 'intro') this.hat(ts, oh, true, G.hatType);
+      const sk = hit(G.shaker, pos); if (sk) this.shaker(ts + hum(), sk * rand(0.85, 1));
+      const rm = hit(G.rim, pos); if (rm && sec !== 'intro') this.rim(ts + hum(), rm);
+      const pc = G.perc && G.perc[pos]; if (pc && pc !== '.' && sec !== 'intro') this.conga(ts + hum(), pc === 'X' ? 0.9 : 0.7, pc === 'X');
     } else if (G.roll && bar % 8 === 7) { // build-up: a snare roll that gets louder and faster
       if (pos >= 8 || pos % 2 === 0) this.snare(t, 0.25 + 0.6 * pos / 16, G.snareType);
     }
     if (Math.random() < candy * 0.035) this.zap(t);
+    if (m.chipArp && this.chord && sec !== 'intro') { // the 8-bit "chord": its notes cycled on 32nds
+      const tones = this.chordTones(72, 88).slice(0, 3);
+      for (let j = 0; j < 2; j++) this.chipNote(tones[((bar * 16 + pos) * 2 + j) % tones.length], t + j * s16 / 2, s16 / 2 * 0.85, 0.4, 'pulse12', this.arpLayer);
+    }
     const B = m.bass, bassOn = sec !== 'break' && (!ip || ip === 'bass');
-    if (B && bassOn && this.chord && B.type === 'stutter') {
+    if (B && bassOn && B.type === 'acid') { // the 303 line follows the key, not the chord, so it can loop hypnotically
+      const a = this.acid[pos], prev = this.acid[(pos + 15) % 16];
+      if (a.on) {
+        const n = 36 + this.key % 12 + a.n;
+        this.acidNote(n, t, a.slide ? s16 * 1.05 : s16 * 0.5, a.acc, prev.on && prev.slide ? this.lastBass : null);
+        this.lastBass = n;
+      }
+    } else if (B && bassOn && this.chord && B.type === 'stutter') {
       const ch = this.stutter[(bar % 2) * 16 + pos];
       if (ch !== '.') {
         let n = this.croot; while (mtof(n) >= 64) n -= 12; // lands between 32 and 64 Hz, as in the reference
@@ -1264,14 +1595,20 @@ class Engine {
         this.stutterHit(n, t, v); if (ch !== 'x') this.stutterHit(n, t + s16 / 2, v * 0.85);
       }
     } else if (B && bassOn && this.chord && B.type !== 'reese') {
-      const v = hit(B.pat, pos);
-      if (v && B.type === 'glide') { // held until the next note, sometimes jumping to the fifth or octave
-        let next = 1; while (next < 16 && !hit(B.pat, pos + next)) next++;
-        const n = this.croot - 12 + (pos >= 8 && Math.random() < 0.4 ? pick([7, 12]) : 0);
-        this.glideBass(n, t, next * s16 * 0.95, v, this.lastBass); this.lastBass = n;
-      } else if (v) {
-        const n = this.croot - 12 + (B.type === 'octave' && (pos / 2) % 2 ? 12 : 0);
-        this.bass(n, t, B.type === 'roll' ? s16 * 0.9 : s16 * 1.8, v, B.type);
+      const v = hit(B.pat, pos), base = this.croot - 12;
+      let next = 1; while (next < 16 && !hit(B.pat, pos + next)) next++;
+      if (v && (B.type === 'glide' || B.type === '808')) { // held until the next note, sometimes jumping to the fifth or octave
+        const n = base + (pos >= 8 && Math.random() < 0.4 ? pick([7, 12]) : 0);
+        this.glideBass(n, t, next * s16 * 0.95, v, this.lastBass, B.type === '808'); this.lastBass = n;
+      } else if (v && (B.type === 'octave' || B.type === 'chip')) {
+        const n = base + ((pos / 2) % 2 ? 12 : 0);
+        if (B.type === 'chip') this.chipNote(n + 12, t, s16 * 0.8, v, 'triangle', this.bassLayer);
+        else this.bass(n, t, s16 * 1.8, v, B.type);
+      } else if (v) { // downbeats hold the root; the other hits follow the riff (bossa alternates root and fifth instead)
+        const n = base + (B.fifths ? (pos >= 8 ? 7 : 0) : pos % 4 && B.type !== 'roll' ? this.bassRiff[pos] : 0);
+        if (B.type === 'upright') this.upright(n, t, next * s16 * 0.9, v);
+        else if (B.type === 'log') this.logDrum(n, t, v);
+        else this.bass(n, t, B.type === 'roll' ? s16 * 0.9 : s16 * 1.8, v, B.type);
       }
     }
     const Ld = m.lead, leadOn = sec === 'intro' ? ip === 'lead' || ip === 'tops' : sec !== 'lite';
@@ -1287,20 +1624,22 @@ class Engine {
         this.lastLead = k;
       }
     } else if (Ld && this.chord && leadOn) {
-      const v = hit(Ld.pat, pos);
+      const v = hit(Ld.pat, pos), mo = bar % 4 === 3 ? this.motifB : this.motif; // every 4th bar answers with a new ending
       if (v) {
         const tones = this.chordTones(Ld.lo, Ld.hi);
-        if (Ld.type === 'stab') tones.slice(0, 4).forEach((k, i) => this.fmKey(k, ts + i * 0.004, 0.55, (i - 1.5) * 0.2, null, 0.18));
+        let next = 1; while (next < 4 && !hit(Ld.pat, pos + next)) next++;
+        if (Ld.type === 'stab') this.chordHit(Ld, tones, ts, v);
         else if (Ld.type === 'arp') this.pluck(tones[(pos + bar * 3) % tones.length], t, pos % 4 ? 0.45 : 0.7);
-        else if (Ld.type === 'dream') { // quick pentatonic line (major or minor, to fit the key), with the odd jump up an octave
-          const sc = m.minor ? [0, 3, 5, 7, 10] : [0, 2, 4, 7, 9], idx = this.motif[pos] + (bar % 4 === 3 ? 2 : 0);
+        else if (Ld.type === 'dream' || Ld.type === 'cowbell' || Ld.type === 'chip') { // pentatonic line (major or minor, to fit the key)
+          const sc = m.minor ? [0, 3, 5, 7, 10] : [0, 2, 4, 7, 9], idx = mo[pos] + (bar % 4 === 3 ? 2 : 0);
           let k = this.key % 12 + 60 + sc[idx % 5] + 12 * Math.floor(idx / 5);
-          if (pos % 4 === 2 && this.motif[(pos + 5) % 16] === 5) k += 12;
-          while (k > Ld.hi + 7) k -= 12; while (k < Ld.lo) k += 12;
-          let next = 1; while (next < 4 && !hit(Ld.pat, pos + next)) next++;
-          this.dreamLead(k, ts, next * s16 * 0.85, v);
+          if (Ld.type === 'dream' && pos % 4 === 2 && mo[(pos + 5) % 16] === 5) k += 12; // the odd jump up an octave
+          while (k > Ld.hi + (Ld.type === 'dream' ? 7 : 0)) k -= 12; while (k < Ld.lo) k += 12;
+          if (Ld.type === 'dream') this.dreamLead(k, ts, next * s16 * 0.85, v);
+          else if (Ld.type === 'cowbell') this.cowbell(k, ts, v);
+          else this.chipNote(k, t, next * s16 * 0.9, v, this.snd.chipWave, this.arpLayer);
         }
-        else this.sawLead(tones[this.motif[pos] % tones.length], t, sec === 'break' ? 0.6 : 0.8, Ld.len);
+        else this.sawLead(tones[mo[pos] % tones.length], t, sec === 'break' ? 0.6 : 0.8, Ld.len);
       }
     }
   }
@@ -1330,7 +1669,16 @@ class Engine {
       const len = m.chordBars * this.bar, dur = m.genre ? len : len + 1.5, strum = m.strum ?? 0.07;
       if (gen) {
         const pv = m.padVel || 0.032;
-        if (L.pad) ch.iv.forEach((iv, i) => this.padNote(root + iv, t + i * strum, dur, i === 0 ? pv * 0.8 : pv));
+        // Voice leading: above the root, each note moves to whichever octave sits closest to the last chord, so pads glide instead of jumping.
+        const notes = ch.iv.map(iv => root + iv), prev = this.lastPad;
+        if (prev) for (let i = 1; i < notes.length; i++) {
+          const near = n => Math.min(...prev.map(p => Math.abs(p - n)));
+          let best = notes[i];
+          for (const o of [-12, 12]) { const n = notes[i] + o; if (n > root + 2 && n <= 84 && !notes.includes(n) && near(n) < near(best)) best = n; }
+          notes[i] = best;
+        }
+        this.lastPad = notes;
+        if (L.pad) notes.forEach((n, i) => this.padNote(n, t + i * strum, dur, i === 0 ? pv * 0.8 : pv));
         if (L.bass && !m.bass) this.bassNote(root - 12, t, dur);
         if (m.bass && m.bass.type === 'reese' && this.sec !== 'break') this.bass(root - 12, t, len - 0.05, 0.9, 'reese');
       }
@@ -1456,10 +1804,12 @@ function newTrack(first) {
 
 // Mode list
 const modesEl = $('#modes');
-for (const m of Object.values(MODES)) {
-  if (m.id === 'deep' || m.id === 'synth') {
-    const h = document.createElement('div'); h.className = 'modes-sub'; h.textContent = m.id === 'deep' ? 'Focus' : 'Genres';
-    h.setAttribute('aria-hidden', 'true'); modesEl.appendChild(h);
+let lastGroup = null;
+for (const m of ORDER.map(id => MODES[id])) {
+  const grp = m.group || 'Focus';
+  if (grp !== lastGroup) {
+    const h = document.createElement('div'); h.className = 'modes-sub'; h.textContent = GROUPS[grp];
+    h.setAttribute('aria-hidden', 'true'); modesEl.appendChild(h); lastGroup = grp;
   }
   const b = document.createElement('button');
   b.className = 'mode'; b.setAttribute('role', 'radio'); b.dataset.id = m.id; b.textContent = m.name;
@@ -1471,7 +1821,7 @@ modesEl.addEventListener('keydown', e => { // arrow keys move through the list l
   const d = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
   if (!d) return;
   e.preventDefault();
-  const ids = Object.keys(MODES), id = ids[(ids.indexOf(S.mode) + d + ids.length) % ids.length];
+  const id = ORDER[(ORDER.indexOf(S.mode) + d + ORDER.length) % ORDER.length];
   setMode(id); modesEl.querySelector(`[data-id="${id}"]`).focus();
 });
 function setMode(id) {
@@ -1780,6 +2130,7 @@ function draw() {
 }
 
 newTrack(true);
+{ const sel = modesEl.querySelector(`[data-id="${S.mode}"]`); modesEl.scrollTop = sel.offsetTop - 40; } // show the saved mode
 syncUI(); syncTime();
 requestAnimationFrame(draw);
 window.QuietEngine = { renderOffline, MODES };

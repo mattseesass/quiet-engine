@@ -7,7 +7,8 @@ Generative focus music that runs in your browser. Nothing is recorded or streame
 ## What it does
 
 - **Focus modes:** Deep Focus, Light Work, Wind Down and Sleep.
-- **Genre modes:** Synthwave, Drum & Bass, Outsider House, Hardstyle 2010, Trance, Balkan House, Old School and Dreamcore.
+- **Chill genres:** Outsider House, Dreamcore, Lo-fi Hip Hop, Bossa Lounge, Dub Techno and Amapiano.
+- **Club genres:** Synthwave, Drum & Bass, Hardstyle 2010, Trance, Balkan House, Old School, Deep House, UK Garage, Nu-Disco, Acid Techno, Phonk and Chiptune.
 - **Pulse:** a beat-locked volume ripple in the 200 Hz–1 kHz band, the focus trick brain.fm describes (Woods et al., 2024). You can turn it off.
 - **Extras:** background noise (brown, pink, rain), a brainwave tone (binaural or pulsed), A=432/440 tuning, a session timer, a skip button (N), and a Fine-tune panel for each mode.
 - **My tracks:** add your own audio files and the pulse runs over them. The files stay on your device.
@@ -33,7 +34,7 @@ The whole app is one file with no dependencies and no build tools.
 
   This also writes `Quiet Engine.html`, a single file you can double-click or send to a friend. Git ignores that file.
 
-To add a mode, copy an entry in `MODES` inside `index.html` and change its tempo, keys, groove patterns and instruments. Drum patterns are one bar of 16th notes: `X` accent, `x` hit, `o` ghost, `.` rest.
+To add a mode, copy an entry in `MODES` inside `index.html` and change its tempo, keys, groove patterns and instruments. Drum patterns are one bar of 16th notes: `X` accent, `x` hit, `o` ghost, `.` rest. Give it a `group` (`Chill` or `Club`) to place it in the list, and add a `VARY` entry so Next track can remix it.
 
 ## License
 
